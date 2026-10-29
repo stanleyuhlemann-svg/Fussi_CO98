@@ -1,0 +1,319 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #151515;
+  background: #f2f2f2;
+  font-synthesis: none;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top, #3a3a3a 0, #161616 34%, #080808 100%);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* =========================================================
+   LOGIN / REGISTRIERUNG / PASSWORT
+   ========================================================= */
+
+.center-screen {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 30px 24px;
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.4);
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.brand-mark {
+  width: 108px;
+  height: 108px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #111111;
+  color: #ffffff;
+  border: 6px solid #dedede;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.brand p {
+  margin: 7px 0 0;
+  color: #666666;
+  font-size: 14px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #cccccc;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 16px;
+  outline: none;
+  background: #ffffff;
+}
+
+input:focus {
+  border-color: #111111;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+.primary-button,
+.secondary-button,
+.text-button,
+.logout-button {
+  border: 0;
+  border-radius: 12px;
+  min-height: 46px;
+  font-weight: 800;
+}
+
+.primary-button {
+  background: #111111;
+  color: #ffffff;
+}
+
+.primary-button:hover {
+  background: #2b2b2b;
+}
+
+.secondary-button {
+  background: #eeeeee;
+  color: #111111;
+}
+
+.secondary-button:hover {
+  background: #dddddd;
+}
+
+.text-button {
+  background: transparent;
+  color: #333333;
+  min-height: 34px;
+}
+
+.text-button:hover {
+  text-decoration: underline;
+}
+
+.form-info {
+  color: #666666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: -4px;
+}
+
+.message {
+  margin: 0;
+  border-radius: 10px;
+  padding: 11px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.message.success {
+  background: #e8f6ec;
+  color: #166534;
+}
+
+.message.error {
+  background: #fdeaea;
+  color: #a61b1b;
+}
+
+/* =========================================================
+   APP NACH DEM LOGIN
+   ========================================================= */
+
+.app-shell {
+  min-height: 100vh;
+  background: #f3f3f3;
+  padding-bottom: 90px;
+}
+
+.app-header {
+  background: #111111;
+  color: #ffffff;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+}
+
+.app-header div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.app-header strong {
+  font-size: 21px;
+}
+
+.app-header span {
+  color: #cccccc;
+  font-size: 12px;
+}
+
+.logout-button {
+  min-height: 38px;
+  padding: 0 14px;
+  color: #ffffff;
+  background: #303030;
+}
+
+.app-content {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+.content-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
+}
+
+.content-card h1 {
+  margin: 0 0 12px;
+  font-size: 25px;
+}
+
+.content-card p {
+  margin: 0;
+  color: #555555;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   NAVIGATION UNTEN
+   ========================================================= */
+
+.bottom-navigation {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 68px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #ffffff;
+  border-top: 1px solid #dddddd;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  z-index: 20;
+}
+
+.bottom-navigation button {
+  border: 0;
+  background: transparent;
+  color: #777777;
+  min-height: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 21px;
+}
+
+.bottom-navigation button span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bottom-navigation button.active {
+  color: #000000;
+  background: #f1f1f1;
+}
+
+/* =========================================================
+   MOBIL
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .center-screen {
+    align-items: flex-start;
+    padding-top: 28px;
+  }
+
+  .auth-card {
+    padding: 25px 18px;
+    border-radius: 20px;
+  }
+
+  .brand-mark {
+    width: 94px;
+    height: 94px;
+  }
+
+  .brand h1 {
+    font-size: 27px;
+  }
+
+  .app-header strong {
+    font-size: 19px;
+  }
+}
