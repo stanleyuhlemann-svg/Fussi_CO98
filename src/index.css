@@ -1,822 +1,362 @@
 * {
-  box-sizing: border-box;
+  box-sizing:border-box
 }
-
 :root {
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Arial,
-    sans-serif;
-
-  color: #171717;
-  background: #eef0f2;
-  font-synthesis: none;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:#f7f9fc;
+  background:#07111f;
+  font-synthesis:none
 }
-
-html,
-body,
-#root {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100%;
+html,body,#root {
+  margin:0;
+  min-width:320px;
+  min-height:100%
 }
-
 body {
-  min-height: 100vh;
-  background:
-    linear-gradient(
-      180deg,
-      #101010 0,
-      #101010 230px,
-      #eef0f2 230px,
-      #eef0f2 100%
-    );
+  min-height:100vh;
+  background:#07111f
 }
-
-button,
-input,
-select {
-  font: inherit;
+button,input,select {
+  font:inherit
 }
-
 button {
-  cursor: pointer;
+  cursor:pointer
 }
-
 button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+  cursor:not-allowed;
+  opacity:.55
 }
-
-
-/* ============================================================
-   LOGIN / REGISTRIERUNG
-   ============================================================ */
-
 .center-screen {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 28px 16px;
-
-  background:
-    radial-gradient(
-      circle at top,
-      #454545 0%,
-      #1a1a1a 35%,
-      #070707 100%
-    );
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px 16px;
+  background:radial-gradient(circle at top,#183844 0,#0d2030 36%,#07111f 100%)
 }
-
 .auth-card {
-  width: 100%;
-  max-width: 430px;
-
-  background: rgba(255, 255, 255, 0.98);
-
-  border-radius: 26px;
-
-  padding: 30px 26px 28px;
-
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.48);
-
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  width:100%;
+  max-width:430px;
+  background:#102034;
+  border:1px solid #263c54;
+  border-radius:24px;
+  padding:30px 26px;
+  box-shadow:0 24px 70px #0008
 }
-
-
-/* ============================================================
-   CO98 BRANDING
-   ============================================================ */
-
 .brand {
-  text-align: center;
-  margin-bottom: 28px;
+  text-align:center;
+  margin-bottom:28px
 }
-
-
-/*
-   Das bisherige schwarze CO98-Platzhalterelement
-   bekommt jetzt das echte Wappen.
-*/
-
 .brand-mark {
-  width: 145px;
-  height: 145px;
-
-  margin: 0 auto 18px;
-
-  border-radius: 22px;
-
-  background:
-    #ffffff
-    url("/co98-logo.jpeg")
-    center / contain
-    no-repeat;
-
-  color: transparent;
-  font-size: 0;
-
-  border: 0;
-
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.22);
+  width:145px;
+  height:145px;
+  margin:0 auto 18px;
+  border-radius:20px;
+  background:#fff url('/co98-logo.jpeg') center/contain no-repeat;
+  color:transparent;
+  font-size:0;
+  box-shadow:0 12px 28px #0006
 }
-
 .brand h1 {
-  margin: 0;
-
-  font-size: 32px;
-  line-height: 1.05;
-
-  font-weight: 900;
-
-  letter-spacing: -0.7px;
+  margin:0;
+  font-size:32px;
+  font-weight:900
 }
-
-.brand p {
-  margin: 9px 0 0;
-
-  color: #666666;
-
-  font-size: 14px;
-  font-weight: 600;
+.brand p,.form-info {
+  color:#91b7d5
 }
-
-
-/* ============================================================
-   FORMULARE
-   ============================================================ */
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.auth-card form {
+  display:flex;
+  flex-direction:column;
+  gap:16px
 }
-
 label {
-  display: flex;
-  flex-direction: column;
-
-  gap: 7px;
-
-  font-size: 14px;
-  font-weight: 750;
-
-  color: #333333;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  font-size:14px;
+  font-weight:750
 }
-
-input,
-select {
-  width: 100%;
-
-  border: 1px solid #d1d1d1;
-
-  border-radius: 13px;
-
-  padding: 13px 14px;
-
-  font-size: 16px;
-
-  outline: none;
-
-  color: #171717;
-  background: #ffffff;
-
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+input,select {
+  width:100%;
+  border:1px solid #36506d;
+  border-radius:12px;
+  padding:13px 14px;
+  font-size:16px;
+  outline:none;
+  color:#fff;
+  background:#081728
 }
-
-input:focus,
-select:focus {
-  border-color: #111111;
-
-  box-shadow:
-    0 0 0 3px rgba(0, 0, 0, 0.09);
+input:focus,select:focus {
+  border-color:#55e9b3;
+  box-shadow:0 0 0 3px #55e9b326
 }
-
-
-/* ============================================================
-   BUTTONS
-   ============================================================ */
-
-.primary-button,
-.secondary-button,
-.text-button,
-.logout-button {
-  border: 0;
-
-  border-radius: 12px;
-
-  min-height: 48px;
-
-  font-weight: 800;
-
-  transition:
-    transform 0.1s ease,
-    background 0.15s ease;
+.primary-button,.secondary-button,.text-button,.logout-button {
+  border:0;
+  border-radius:12px;
+  min-height:46px;
+  font-weight:800
 }
-
 .primary-button {
-  background: #111111;
-  color: #ffffff;
-
-  padding: 0 20px;
-
-  box-shadow:
-    0 5px 14px rgba(0, 0, 0, 0.18);
+  background:#55e9b3;
+  color:#052017;
+  padding:0 20px
 }
-
-.primary-button:hover {
-  background: #2b2b2b;
-}
-
-.primary-button:active {
-  transform: scale(0.985);
-}
-
 .secondary-button {
-  background: #eeeeee;
-  color: #111111;
-
-  padding: 0 20px;
+  background:#203754;
+  color:#fff;
+  padding:0 20px
 }
-
-.secondary-button:hover {
-  background: #dddddd;
-}
-
 .text-button {
-  background: transparent;
-  color: #333333;
-
-  min-height: 36px;
+  background:transparent;
+  color:#9bc5e8
 }
-
-.text-button:hover {
-  text-decoration: underline;
-}
-
-
-/* ============================================================
-   MELDUNGEN
-   ============================================================ */
-
-.form-info {
-  margin-top: -4px;
-
-  color: #666666;
-
-  font-size: 14px;
-  line-height: 1.5;
-}
-
 .message {
-  width: 100%;
-
-  margin: 0 auto 14px;
-
-  border-radius: 12px;
-
-  padding: 12px 14px;
-
-  font-size: 14px;
-  line-height: 1.4;
+  width:100%;
+  margin:0 auto 14px;
+  border-radius:12px;
+  padding:12px 14px;
+  font-size:14px
 }
-
 .message.success {
-  color: #145b2c;
-  background: #e9f7ed;
-
-  border: 1px solid #bfe5ca;
+  color:#a9f6d3;
+  background:#123b33;
+  border:1px solid #246b58
 }
-
 .message.error {
-  color: #9b1c1c;
-  background: #fdecec;
-
-  border: 1px solid #f5c2c2;
+  color:#ffb5c4;
+  background:#4c1d2d;
+  border:1px solid #783047
 }
-
-
-/* ============================================================
-   APP NACH DEM LOGIN
-   ============================================================ */
-
 .app-shell {
-  min-height: 100vh;
-
-  background:
-    linear-gradient(
-      180deg,
-      #eeeeee 0%,
-      #f7f7f7 100%
-    );
-
-  padding-bottom: 92px;
+  min-height:100vh;
+  background:#07111f;
+  padding-bottom:32px;
+  display:flex;
+  flex-direction:column
 }
-
-
-/* ============================================================
-   HEADER
-   ============================================================ */
-
 .app-header {
-  min-height: 76px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #050505,
-      #202020
-    );
-
-  color: #ffffff;
-
-  padding: 10px 18px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 14px;
-
-  position: sticky;
-  top: 0;
-
-  z-index: 10;
-
-  box-shadow:
-    0 4px 18px rgba(0, 0, 0, 0.22);
+  order:0;
+  width:calc(100% - 48px);
+  max-width:1180px;
+  min-height:170px;
+  margin:16px auto 0;
+  padding:28px;
+  background:linear-gradient(135deg,#103a35,#102137 58%,#102137);
+  color:#fff;
+  border:1px solid #263c54;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  box-shadow:0 12px 32px #0005
 }
-
-
-/*
-   Kleines Originalwappen links im Header.
-*/
-
 .app-header::before {
-  content: "";
-
-  display: block;
-
-  flex: 0 0 52px;
-
-  width: 52px;
-  height: 52px;
-
-  background:
-    #ffffff
-    url("/co98-logo.jpeg")
-    center / contain
-    no-repeat;
-
-  border-radius: 10px;
-
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.35);
+  content:"";
+  display:block;
+  flex:0 0 92px;
+  width:92px;
+  height:92px;
+  background:#fff url('/co98-logo.jpeg') center/contain no-repeat;
+  border-radius:16px;
+  box-shadow:0 8px 20px #0006
 }
-
-.app-header > div {
-  display: flex;
-  flex-direction: column;
-
-  gap: 3px;
-
-  flex: 1;
+.app-header>div {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:1
 }
-
 .app-header strong {
-  font-size: 21px;
-  font-weight: 900;
-
-  letter-spacing: -0.25px;
+  font-size:34px;
+  font-weight:900
 }
-
 .app-header span {
-  color: #cccccc;
-
-  font-size: 11px;
-
-  font-weight: 600;
+  font-size:14px;
+  color:#9bc5e8
 }
-
 .logout-button {
-  min-height: 38px;
-
-  padding: 0 14px;
-
-  color: #ffffff;
-  background: #333333;
-
-  white-space: nowrap;
+  padding:0 18px;
+  color:#fff;
+  background:#203754
 }
-
-.logout-button:hover {
-  background: #484848;
-}
-
-
-/* ============================================================
-   HAUPTINHALT
-   ============================================================ */
-
-.app-content {
-  width: 100%;
-  max-width: 720px;
-
-  margin: 0 auto;
-
-  padding: 20px 14px 30px;
-}
-
-
-/* ============================================================
-   KARTEN
-   ============================================================ */
-
-.content-card {
-  background: #ffffff;
-
-  border-radius: 20px;
-
-  padding: 22px;
-
-  border: 1px solid #e3e3e3;
-
-  box-shadow:
-    0 7px 24px rgba(0, 0, 0, 0.075);
-}
-
-.content-card + .content-card {
-  margin-top: 16px !important;
-}
-
-.content-card h1 {
-  margin: 0 0 8px;
-
-  font-size: 26px;
-  line-height: 1.15;
-
-  font-weight: 900;
-
-  letter-spacing: -0.45px;
-}
-
-.content-card h2 {
-  font-size: 20px;
-
-  font-weight: 850;
-
-  letter-spacing: -0.25px;
-}
-
-.content-card p {
-  color: #575757;
-
-  line-height: 1.55;
-}
-
-
-/* ============================================================
-   ANMELDUNG / SPIELTAG
-   ============================================================ */
-
-.content-card select {
-  margin-top: 2px;
-}
-
-/*
-   Die vorhandenen grauen Spieltags- und Teilnehmerbereiche
-   etwas wertiger darstellen.
-*/
-
-.content-card div[style*="background: rgb(245, 245, 245)"],
-.content-card div[style*="background:#f5f5f5"],
-.content-card div[style*="background: #f5f5f5"] {
-  background: #f4f5f6 !important;
-
-  border: 1px solid #e3e4e5;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-
-/* ============================================================
-   ADMIN-BEREICH
-   ============================================================ */
-
-.content-card button[style*="background: rgb(152, 27, 27)"],
-.content-card button[style*="background:#981b1b"],
-.content-card button[style*="background: #981b1b"] {
-  background: #b42323 !important;
-
-  box-shadow:
-    0 4px 10px rgba(180, 35, 35, 0.18);
-}
-
-.content-card button[style*="background: rgb(152, 27, 27)"]:hover,
-.content-card button[style*="background:#981b1b"]:hover,
-.content-card button[style*="background: #981b1b"]:hover {
-  background: #941b1b !important;
-}
-
-
-/* ============================================================
-   TEAM-AUSLOSUNG
-   ============================================================ */
-
-.content-card button {
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
-}
-
-.content-card button:active {
-  transform: scale(0.985);
-}
-
-
-/* ============================================================
-   RANKING
-   ============================================================ */
-
-table {
-  width: 100%;
-
-  background: #ffffff;
-
-  border-radius: 12px;
-
-  overflow: hidden;
-}
-
-thead {
-  background: #111111;
-  color: #ffffff;
-}
-
-th {
-  padding: 11px 8px;
-
-  font-size: 13px;
-}
-
-td {
-  font-size: 14px;
-}
-
-tbody tr:nth-child(even) {
-  background: #f6f6f6;
-}
-
-
-/* ============================================================
-   BOTTOM NAVIGATION
-   ============================================================ */
-
 .bottom-navigation {
-  position: fixed;
-
-  left: 50%;
-  transform: translateX(-50%);
-
-  right: auto;
-  bottom: 0;
-
-  width: 100%;
-  max-width: 720px;
-
-  min-height: 70px;
-
-  padding-bottom:
-    env(safe-area-inset-bottom);
-
-  background:
-    rgba(255, 255, 255, 0.97);
-
-  border-top:
-    1px solid #d8d8d8;
-
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
-
-  z-index: 20;
-
-  box-shadow:
-    0 -5px 20px rgba(0, 0, 0, 0.08);
-
-  backdrop-filter: blur(12px);
+  order:1;
+  position:static;
+  transform:none;
+  width:calc(100% - 48px);
+  max-width:1180px;
+  min-height:auto;
+  margin:18px auto 0;
+  padding:0;
+  background:transparent;
+  border:0;
+  display:flex;
+  gap:12px;
+  box-shadow:none
 }
-
 .bottom-navigation button {
-  position: relative;
-
-  border: 0;
-
-  background: transparent;
-
-  color: #777777;
-
-  min-height: 70px;
-
-  display: flex;
-  flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 4px;
-
-  font-size: 21px;
-
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
+  border:0;
+  border-radius:12px;
+  background:#203754;
+  color:#fff;
+  min-height:44px;
+  padding:0 22px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:16px;
+  font-weight:800
 }
-
 .bottom-navigation button span {
-  font-size: 12px;
-
-  font-weight: 750;
+  font-size:15px
 }
-
 .bottom-navigation button.active {
-  color: #000000;
-
-  background: #f1f1f1;
+  color:#062118;
+  background:#55e9b3
 }
-
 .bottom-navigation button.active::before {
-  content: "";
-
-  position: absolute;
-
-  top: 0;
-  left: 24%;
-  right: 24%;
-
-  height: 3px;
-
-  border-radius:
-    0 0 3px 3px;
-
-  background: #111111;
+  display:none
 }
-
-
-/* ============================================================
-   DESKTOP
-   ============================================================ */
-
-@media (min-width: 721px) {
-  .app-header {
-    padding-left:
-      calc((100vw - 720px) / 2 + 16px);
-
-    padding-right:
-      calc((100vw - 720px) / 2 + 16px);
-  }
-
-  .app-content {
-    padding-top: 26px;
-  }
-
-  .content-card {
-    padding: 26px;
-  }
+.app-content {
+  order:2;
+  width:calc(100% - 48px);
+  max-width:1180px;
+  margin:18px auto 0;
+  padding:0 0 30px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:16px;
+  align-items:start
 }
-
-
-/* ============================================================
-   SMARTPHONE
-   ============================================================ */
-
-@media (max-width: 520px) {
-  .center-screen {
-    padding:
-      20px 14px 30px;
-
-    align-items: flex-start;
-  }
-
-  .auth-card {
-    margin-top: 8px;
-
-    padding:
-      24px 18px 22px;
-
-    border-radius: 22px;
-  }
-
-  .brand-mark {
-    width: 125px;
-    height: 125px;
-
-    margin-bottom: 15px;
-  }
-
-  .brand h1 {
-    font-size: 28px;
-  }
-
+.app-content>.message {
+  grid-column:1/-1
+}
+.content-card {
+  background:#102034;
+  color:#fff;
+  border:1px solid #263c54;
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 8px 25px #0004;
+  margin:0!important
+}
+.content-card:first-of-type {
+  grid-column:1/-1
+}
+.content-card:last-child:nth-child(3) {
+  grid-column:1/-1
+}
+.content-card h1 {
+  margin:0 0 10px;
+  font-size:27px;
+  font-weight:900
+}
+.content-card h2 {
+  font-size:21px
+}
+.content-card p {
+  color:#9bc5e8;
+  line-height:1.55
+}
+.content-card div[style*="background"] {
+  background:#081728!important;
+  border-color:#263c54!important
+}
+.content-card button[style*="background: rgb(152, 27, 27)"],.content-card button[style*="background:#981b1b"],.content-card button[style*="background: #981b1b"] {
+  background:#6b243f!important;
+  color:#ffc5d3!important
+}
+.content-card button {
+  transition:transform .1s ease
+}
+.content-card button:active {
+  transform:scale(.985)
+}
+table {
+  width:100%;
+  background:#081728;
+  color:#fff;
+  border-radius:12px;
+  overflow:hidden
+}
+thead {
+  background:#55e9b3;
+  color:#052017
+}
+th {
+  padding:11px 8px
+}
+tbody tr:nth-child(even) {
+  background:#10243a
+}
+@media(max-width:760px) {
   .app-header {
-    min-height: 68px;
-
-    padding: 8px 10px;
+    width:calc(100% - 20px);
+    min-height:76px;
+    margin-top:8px;
+    padding:10px 12px;
+    border-radius:15px
   }
-
   .app-header::before {
-    width: 45px;
-    height: 45px;
-
-    flex-basis: 45px;
-
-    border-radius: 8px;
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+    border-radius:9px
   }
-
   .app-header strong {
-    font-size: 18px;
+    font-size:20px
   }
-
   .app-header span {
-    font-size: 10px;
+    font-size:10px
   }
-
   .logout-button {
-    min-height: 36px;
-
-    padding:
-      0 10px;
-
-    font-size: 12px;
+    min-height:36px;
+    padding:0 10px;
+    font-size:12px
   }
-
-  .app-content {
-    padding:
-      14px 10px 25px;
-  }
-
-  .content-card {
-    padding: 18px 15px;
-
-    border-radius: 17px;
-  }
-
-  .content-card h1 {
-    font-size: 23px;
-  }
-
-  .content-card h2 {
-    font-size: 18px;
-  }
-
-  .primary-button,
-  .secondary-button {
-    width: 100%;
-  }
-
   .bottom-navigation {
-    min-height: 67px;
+    width:calc(100% - 20px);
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:7px;
+    margin-top:10px
   }
-
   .bottom-navigation button {
-    min-height: 67px;
+    padding:0 7px;
+    min-height:52px;
+    flex-direction:column;
+    font-size:19px
   }
-}
-
-
-/* ============================================================
-   SEHR KLEINE DISPLAYS
-   ============================================================ */
-
-@media (max-width: 360px) {
-  .app-header strong {
-    font-size: 16px;
+  .bottom-navigation button span {
+    font-size:11px
   }
-
-  .app-header::before {
-    width: 40px;
-    height: 40px;
-
-    flex-basis: 40px;
+  .app-content {
+    width:calc(100% - 20px);
+    grid-template-columns:1fr;
+    margin-top:10px
   }
-
-  .logout-button {
-    padding: 0 8px;
+  .content-card,.content-card:first-of-type,.content-card:last-child:nth-child(3) {
+    grid-column:1
   }
-
   .content-card {
-    padding: 16px 13px;
+    padding:18px 15px;
+    border-radius:16px
+  }
+  .primary-button,.secondary-button {
+    width:100%
+  }
+  .center-screen {
+    align-items:flex-start;
+    padding-top:20px
+  }
+  .auth-card {
+    padding:24px 18px
+  }
+  .brand-mark {
+    width:125px;
+    height:125px
   }
 }
