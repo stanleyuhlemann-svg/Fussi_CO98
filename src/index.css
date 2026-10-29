@@ -3,9 +3,17 @@
 }
 
 :root {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #151515;
-  background: #f2f2f2;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+
+  color: #171717;
+  background: #eef0f2;
   font-synthesis: none;
 }
 
@@ -13,17 +21,25 @@ html,
 body,
 #root {
   margin: 0;
+  min-width: 320px;
   min-height: 100%;
 }
 
 body {
-  min-width: 320px;
+  min-height: 100vh;
   background:
-    radial-gradient(circle at top, #3a3a3a 0, #161616 34%, #080808 100%);
+    linear-gradient(
+      180deg,
+      #101010 0,
+      #101010 230px,
+      #eef0f2 230px,
+      #eef0f2 100%
+    );
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -31,59 +47,111 @@ button {
   cursor: pointer;
 }
 
-/* =========================================================
-   LOGIN / REGISTRIERUNG / PASSWORT
-   ========================================================= */
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+
+/* ============================================================
+   LOGIN / REGISTRIERUNG
+   ============================================================ */
 
 .center-screen {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 24px 16px;
+  padding: 28px 16px;
+
+  background:
+    radial-gradient(
+      circle at top,
+      #454545 0%,
+      #1a1a1a 35%,
+      #070707 100%
+    );
 }
 
 .auth-card {
   width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 30px 24px;
-  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.4);
+  max-width: 430px;
+
+  background: rgba(255, 255, 255, 0.98);
+
+  border-radius: 26px;
+
+  padding: 30px 26px 28px;
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.48);
+
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
+
+
+/* ============================================================
+   CO98 BRANDING
+   ============================================================ */
 
 .brand {
   text-align: center;
   margin-bottom: 28px;
 }
 
+
+/*
+   Das bisherige schwarze CO98-Platzhalterelement
+   bekommt jetzt das echte Wappen.
+*/
+
 .brand-mark {
-  width: 108px;
-  height: 108px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
-  background: #111111;
-  color: #ffffff;
-  border: 6px solid #dedede;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 27px;
-  font-weight: 900;
-  letter-spacing: -1px;
+  width: 145px;
+  height: 145px;
+
+  margin: 0 auto 18px;
+
+  border-radius: 22px;
+
+  background:
+    #ffffff
+    url("/co98-logo.jpeg")
+    center / contain
+    no-repeat;
+
+  color: transparent;
+  font-size: 0;
+
+  border: 0;
+
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.22);
 }
 
 .brand h1 {
   margin: 0;
-  font-size: 30px;
+
+  font-size: 32px;
+  line-height: 1.05;
+
   font-weight: 900;
+
+  letter-spacing: -0.7px;
 }
 
 .brand p {
-  margin: 7px 0 0;
+  margin: 9px 0 0;
+
   color: #666666;
+
   font-size: 14px;
+  font-weight: 600;
 }
+
+
+/* ============================================================
+   FORMULARE
+   ============================================================ */
 
 form {
   display: flex;
@@ -94,48 +162,90 @@ form {
 label {
   display: flex;
   flex-direction: column;
+
   gap: 7px;
+
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 750;
+
+  color: #333333;
 }
 
-input {
+input,
+select {
   width: 100%;
-  border: 1px solid #cccccc;
-  border-radius: 12px;
+
+  border: 1px solid #d1d1d1;
+
+  border-radius: 13px;
+
   padding: 13px 14px;
+
   font-size: 16px;
+
   outline: none;
+
+  color: #171717;
   background: #ffffff;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: #111111;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+
+  box-shadow:
+    0 0 0 3px rgba(0, 0, 0, 0.09);
 }
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 
 .primary-button,
 .secondary-button,
 .text-button,
 .logout-button {
   border: 0;
+
   border-radius: 12px;
-  min-height: 46px;
+
+  min-height: 48px;
+
   font-weight: 800;
+
+  transition:
+    transform 0.1s ease,
+    background 0.15s ease;
 }
 
 .primary-button {
   background: #111111;
   color: #ffffff;
+
+  padding: 0 20px;
+
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.18);
 }
 
 .primary-button:hover {
   background: #2b2b2b;
 }
 
+.primary-button:active {
+  transform: scale(0.985);
+}
+
 .secondary-button {
   background: #eeeeee;
   color: #111111;
+
+  padding: 0 20px;
 }
 
 .secondary-button:hover {
@@ -145,175 +255,568 @@ input:focus {
 .text-button {
   background: transparent;
   color: #333333;
-  min-height: 34px;
+
+  min-height: 36px;
 }
 
 .text-button:hover {
   text-decoration: underline;
 }
 
+
+/* ============================================================
+   MELDUNGEN
+   ============================================================ */
+
 .form-info {
+  margin-top: -4px;
+
   color: #666666;
+
   font-size: 14px;
   line-height: 1.5;
-  margin-top: -4px;
 }
 
 .message {
-  margin: 0;
-  border-radius: 10px;
-  padding: 11px 12px;
+  width: 100%;
+
+  margin: 0 auto 14px;
+
+  border-radius: 12px;
+
+  padding: 12px 14px;
+
   font-size: 14px;
   line-height: 1.4;
 }
 
 .message.success {
-  background: #e8f6ec;
-  color: #166534;
+  color: #145b2c;
+  background: #e9f7ed;
+
+  border: 1px solid #bfe5ca;
 }
 
 .message.error {
-  background: #fdeaea;
-  color: #a61b1b;
+  color: #9b1c1c;
+  background: #fdecec;
+
+  border: 1px solid #f5c2c2;
 }
 
-/* =========================================================
+
+/* ============================================================
    APP NACH DEM LOGIN
-   ========================================================= */
+   ============================================================ */
 
 .app-shell {
   min-height: 100vh;
-  background: #f3f3f3;
-  padding-bottom: 90px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #eeeeee 0%,
+      #f7f7f7 100%
+    );
+
+  padding-bottom: 92px;
 }
 
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
 .app-header {
-  background: #111111;
+  min-height: 76px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #050505,
+      #202020
+    );
+
   color: #ffffff;
-  padding: 16px;
+
+  padding: 10px 18px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+
+  gap: 14px;
+
   position: sticky;
   top: 0;
+
   z-index: 10;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.22);
 }
 
-.app-header div {
+
+/*
+   Kleines Originalwappen links im Header.
+*/
+
+.app-header::before {
+  content: "";
+
+  display: block;
+
+  flex: 0 0 52px;
+
+  width: 52px;
+  height: 52px;
+
+  background:
+    #ffffff
+    url("/co98-logo.jpeg")
+    center / contain
+    no-repeat;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.app-header > div {
   display: flex;
   flex-direction: column;
+
   gap: 3px;
+
+  flex: 1;
 }
 
 .app-header strong {
   font-size: 21px;
+  font-weight: 900;
+
+  letter-spacing: -0.25px;
 }
 
 .app-header span {
   color: #cccccc;
-  font-size: 12px;
+
+  font-size: 11px;
+
+  font-weight: 600;
 }
 
 .logout-button {
   min-height: 38px;
+
   padding: 0 14px;
+
   color: #ffffff;
-  background: #303030;
+  background: #333333;
+
+  white-space: nowrap;
 }
+
+.logout-button:hover {
+  background: #484848;
+}
+
+
+/* ============================================================
+   HAUPTINHALT
+   ============================================================ */
 
 .app-content {
   width: 100%;
-  max-width: 760px;
+  max-width: 720px;
+
   margin: 0 auto;
-  padding: 20px 16px;
+
+  padding: 20px 14px 30px;
 }
+
+
+/* ============================================================
+   KARTEN
+   ============================================================ */
 
 .content-card {
   background: #ffffff;
-  border-radius: 18px;
+
+  border-radius: 20px;
+
   padding: 22px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
+
+  border: 1px solid #e3e3e3;
+
+  box-shadow:
+    0 7px 24px rgba(0, 0, 0, 0.075);
+}
+
+.content-card + .content-card {
+  margin-top: 16px !important;
 }
 
 .content-card h1 {
-  margin: 0 0 12px;
-  font-size: 25px;
+  margin: 0 0 8px;
+
+  font-size: 26px;
+  line-height: 1.15;
+
+  font-weight: 900;
+
+  letter-spacing: -0.45px;
+}
+
+.content-card h2 {
+  font-size: 20px;
+
+  font-weight: 850;
+
+  letter-spacing: -0.25px;
 }
 
 .content-card p {
-  margin: 0;
-  color: #555555;
+  color: #575757;
+
   line-height: 1.55;
 }
 
-/* =========================================================
-   NAVIGATION UNTEN
-   ========================================================= */
+
+/* ============================================================
+   ANMELDUNG / SPIELTAG
+   ============================================================ */
+
+.content-card select {
+  margin-top: 2px;
+}
+
+/*
+   Die vorhandenen grauen Spieltags- und Teilnehmerbereiche
+   etwas wertiger darstellen.
+*/
+
+.content-card div[style*="background: rgb(245, 245, 245)"],
+.content-card div[style*="background:#f5f5f5"],
+.content-card div[style*="background: #f5f5f5"] {
+  background: #f4f5f6 !important;
+
+  border: 1px solid #e3e4e5;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+
+/* ============================================================
+   ADMIN-BEREICH
+   ============================================================ */
+
+.content-card button[style*="background: rgb(152, 27, 27)"],
+.content-card button[style*="background:#981b1b"],
+.content-card button[style*="background: #981b1b"] {
+  background: #b42323 !important;
+
+  box-shadow:
+    0 4px 10px rgba(180, 35, 35, 0.18);
+}
+
+.content-card button[style*="background: rgb(152, 27, 27)"]:hover,
+.content-card button[style*="background:#981b1b"]:hover,
+.content-card button[style*="background: #981b1b"]:hover {
+  background: #941b1b !important;
+}
+
+
+/* ============================================================
+   TEAM-AUSLOSUNG
+   ============================================================ */
+
+.content-card button {
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.content-card button:active {
+  transform: scale(0.985);
+}
+
+
+/* ============================================================
+   RANKING
+   ============================================================ */
+
+table {
+  width: 100%;
+
+  background: #ffffff;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+}
+
+thead {
+  background: #111111;
+  color: #ffffff;
+}
+
+th {
+  padding: 11px 8px;
+
+  font-size: 13px;
+}
+
+td {
+  font-size: 14px;
+}
+
+tbody tr:nth-child(even) {
+  background: #f6f6f6;
+}
+
+
+/* ============================================================
+   BOTTOM NAVIGATION
+   ============================================================ */
 
 .bottom-navigation {
   position: fixed;
-  left: 0;
-  right: 0;
+
+  left: 50%;
+  transform: translateX(-50%);
+
+  right: auto;
   bottom: 0;
-  min-height: 68px;
-  padding-bottom: env(safe-area-inset-bottom);
-  background: #ffffff;
-  border-top: 1px solid #dddddd;
+
+  width: 100%;
+  max-width: 720px;
+
+  min-height: 70px;
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+
+  background:
+    rgba(255, 255, 255, 0.97);
+
+  border-top:
+    1px solid #d8d8d8;
+
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
   z-index: 20;
+
+  box-shadow:
+    0 -5px 20px rgba(0, 0, 0, 0.08);
+
+  backdrop-filter: blur(12px);
 }
 
 .bottom-navigation button {
+  position: relative;
+
   border: 0;
+
   background: transparent;
+
   color: #777777;
-  min-height: 68px;
+
+  min-height: 70px;
+
   display: flex;
   flex-direction: column;
+
   align-items: center;
   justify-content: center;
+
   gap: 4px;
+
   font-size: 21px;
+
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .bottom-navigation button span {
   font-size: 12px;
-  font-weight: 700;
+
+  font-weight: 750;
 }
 
 .bottom-navigation button.active {
   color: #000000;
+
   background: #f1f1f1;
 }
 
-/* =========================================================
-   MOBIL
-   ========================================================= */
+.bottom-navigation button.active::before {
+  content: "";
 
-@media (max-width: 480px) {
+  position: absolute;
+
+  top: 0;
+  left: 24%;
+  right: 24%;
+
+  height: 3px;
+
+  border-radius:
+    0 0 3px 3px;
+
+  background: #111111;
+}
+
+
+/* ============================================================
+   DESKTOP
+   ============================================================ */
+
+@media (min-width: 721px) {
+  .app-header {
+    padding-left:
+      calc((100vw - 720px) / 2 + 16px);
+
+    padding-right:
+      calc((100vw - 720px) / 2 + 16px);
+  }
+
+  .app-content {
+    padding-top: 26px;
+  }
+
+  .content-card {
+    padding: 26px;
+  }
+}
+
+
+/* ============================================================
+   SMARTPHONE
+   ============================================================ */
+
+@media (max-width: 520px) {
   .center-screen {
+    padding:
+      20px 14px 30px;
+
     align-items: flex-start;
-    padding-top: 28px;
   }
 
   .auth-card {
-    padding: 25px 18px;
-    border-radius: 20px;
+    margin-top: 8px;
+
+    padding:
+      24px 18px 22px;
+
+    border-radius: 22px;
   }
 
   .brand-mark {
-    width: 94px;
-    height: 94px;
+    width: 125px;
+    height: 125px;
+
+    margin-bottom: 15px;
   }
 
   .brand h1 {
-    font-size: 27px;
+    font-size: 28px;
+  }
+
+  .app-header {
+    min-height: 68px;
+
+    padding: 8px 10px;
+  }
+
+  .app-header::before {
+    width: 45px;
+    height: 45px;
+
+    flex-basis: 45px;
+
+    border-radius: 8px;
   }
 
   .app-header strong {
-    font-size: 19px;
+    font-size: 18px;
+  }
+
+  .app-header span {
+    font-size: 10px;
+  }
+
+  .logout-button {
+    min-height: 36px;
+
+    padding:
+      0 10px;
+
+    font-size: 12px;
+  }
+
+  .app-content {
+    padding:
+      14px 10px 25px;
+  }
+
+  .content-card {
+    padding: 18px 15px;
+
+    border-radius: 17px;
+  }
+
+  .content-card h1 {
+    font-size: 23px;
+  }
+
+  .content-card h2 {
+    font-size: 18px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .bottom-navigation {
+    min-height: 67px;
+  }
+
+  .bottom-navigation button {
+    min-height: 67px;
+  }
+}
+
+
+/* ============================================================
+   SEHR KLEINE DISPLAYS
+   ============================================================ */
+
+@media (max-width: 360px) {
+  .app-header strong {
+    font-size: 16px;
+  }
+
+  .app-header::before {
+    width: 40px;
+    height: 40px;
+
+    flex-basis: 40px;
+  }
+
+  .logout-button {
+    padding: 0 8px;
+  }
+
+  .content-card {
+    padding: 16px 13px;
   }
 }
