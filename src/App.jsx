@@ -678,10 +678,21 @@ function EventCard({ eventItem, profiles, responses, currentUserId, expanded, bu
   const ownStatus = own?.status || 'open'
 
   return <div style={{ marginTop: 14, padding: 16, borderRadius: 16, background: '#081728', border: '1px solid #263c54' }}>
-    <button type="button" onClick={onToggle} style={{ width: '100%', textAlign: 'left' }}>
-      <strong>{eventItem.title}</strong><br />
-      <span>{formatDate(eventItem.start_date)} · Ort: {eventItem.location}</span>
-    </button>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+      <div style={{ minWidth: 0 }}>
+        <strong style={{ display: 'block', fontSize: 18 }}>{eventItem.title}</strong>
+        <span>{formatDate(eventItem.start_date)} · Ort: {eventItem.location}</span>
+      </div>
+      <button
+        type="button"
+        className="primary-button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        style={{ flex: '0 0 auto', minWidth: 92 }}
+      >
+        {expanded ? 'Schließen' : 'Klick'}
+      </button>
+    </div>
     <p>✅ Dabei ({yesPlayers.length}) · ❌ Nicht dabei ({noPlayers.length}) · ❓ Offen ({openPlayers.length})</p>
 
     {expanded && <div>
