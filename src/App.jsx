@@ -690,7 +690,7 @@ function EventCard({ eventItem, profiles, responses, currentUserId, expanded, bu
         aria-expanded={expanded}
         style={{ flex: '0 0 auto', minWidth: 92 }}
       >
-        {expanded ? 'Schließen' : 'Klick'}
+        {expanded ? 'Schließen' : 'Öffnen'}
       </button>
     </div>
     <p>✅ Dabei ({yesPlayers.length}) · ❌ Nicht dabei ({noPlayers.length}) · ❓ Offen ({openPlayers.length})</p>
