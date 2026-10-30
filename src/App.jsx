@@ -16,6 +16,14 @@ function formatTime(value) {
   return value ? String(value).slice(0, 5) : ''
 }
 
+function getLocalDateString() {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function shuffle(items) {
   const copy = [...items]
   for (let index = copy.length - 1; index > 0; index -= 1) {
@@ -169,7 +177,12 @@ export default function App() {
     resetFeedback()
     const [profileResult, daysResult, profilesResult] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-      supabase.from('match_days').select('*').order('match_date').order('start_time'),
+      supabase
+        .from('match_days')
+        .select('*')
+        .gte('match_date', getLocalDateString())
+        .order('match_date')
+        .order('start_time'),
       supabase.from('profiles').select('id, display_name, elo').order('display_name'),
     ])
     const firstError = profileResult.error || daysResult.error || profilesResult.error
@@ -181,10 +194,23 @@ export default function App() {
     setProfile(profileResult.data)
     setMatchDays(daysResult.data || [])
     setAllProfiles(profilesResult.data || [])
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    const next = (daysResult.data || []).find((day) =>
-      new Date(`${day.match_date}T12:00:00`) >= today && day.status !== 'finished') || daysResult.data?.[0]
-    if (next && !selectedDayId) setSelectedDayId(next.id)
+    const availableDays = daysResult.data || []
+    const next = availableDays.find((day) => day.status !== 'finished') || availableDays[0]
+    const selectedDayStillAvailable = availableDays.some(
+      (day) => String(day.id) === String(selectedDayId)
+    )
+
+    if (next && (!selectedDayId || !selectedDayStillAvailable)) {
+      setSelectedDayId(next.id)
+    }
+
+    if (!next) {
+      setSelectedDayId(null)
+      setRegistrations([])
+      setGuests([])
+      setRound(null)
+      setTeamMembers([])
+    }
     await Promise.all([loadRanking(), loadEvents()])
     setLoading(false)
   }
