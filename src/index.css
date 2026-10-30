@@ -468,3 +468,54 @@ tbody tr:nth-child(even) {
     height: 125px;
   }
 }
+
+/* ============================================================
+   CO98 BUTTON-FINISH
+   Entfernen-/Loeschen-Aktionen passend zum dunklen Design
+   ============================================================ */
+
+.content-card button:not(.primary-button):not(.secondary-button):not(.text-button) {
+  border: 1px solid #36506d;
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 8px 16px;
+  background: #203754;
+  color: #ffffff;
+  font-weight: 800;
+  line-height: 1.15;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+}
+
+/* Loeschen-/Entfernen-Buttons in Teilnehmer- und Adminbereichen */
+.content-card button:not(.primary-button):not(.secondary-button):not(.text-button):hover {
+  border-color: #8b3a55;
+  background: #6b243f;
+  color: #ffd7e1;
+}
+
+.content-card button:not(.primary-button):not(.secondary-button):not(.text-button):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Spieltag loeschen: volle Breite, aber trotzdem rund und klar als Warnaktion */
+.content-card form + button {
+  border: 1px solid #8b3a55 !important;
+  border-radius: 14px !important;
+  min-height: 44px !important;
+  background: #5a2036 !important;
+  color: #ffd7e1 !important;
+  font-weight: 850 !important;
+  box-shadow: 0 5px 14px rgba(86, 26, 48, 0.28) !important;
+}
+
+.content-card form + button:hover {
+  background: #762b46 !important;
+  border-color: #a94766 !important;
+}
+
+@media (max-width: 760px) {
+  .content-card button:not(.primary-button):not(.secondary-button):not(.text-button) {
+    min-height: 40px;
+    padding: 8px 14px;
+  }
+}
