@@ -1,0 +1,85 @@
+/* ============================================================
+   CO98 EVENT-AMPEL
+   Die Farbe jeder Eventkarte zeigt die eigene Antwort des
+   aktuell angemeldeten Benutzers.
+   ============================================================ */
+
+.event-card {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Eigene Zusage: Gruen */
+.event-card.event-status-yes {
+  background: linear-gradient(135deg, #0d332b 0%, #0a2724 100%) !important;
+  border-color: #2fcf98 !important;
+  box-shadow:
+    inset 5px 0 0 #55e9b3,
+    0 8px 22px rgba(19, 121, 89, 0.18);
+}
+
+/* Eigene Absage: Rot */
+.event-card.event-status-no {
+  background: linear-gradient(135deg, #3a1722 0%, #28131d 100%) !important;
+  border-color: #c94b6d !important;
+  box-shadow:
+    inset 5px 0 0 #ef6b88,
+    0 8px 22px rgba(151, 45, 75, 0.18);
+}
+
+/* Noch nicht abgestimmt / wieder auf offen gesetzt: Orange */
+.event-card.event-status-open {
+  background: linear-gradient(135deg, #3b2a12 0%, #2a2113 100%) !important;
+  border-color: #d89632 !important;
+  box-shadow:
+    inset 5px 0 0 #f4ad42,
+    0 8px 22px rgba(179, 111, 26, 0.18);
+}
+
+/* Kleine Statusmarkierung neben den Zaehlern */
+.event-card.event-status-yes .event-counts::before {
+  content: "Eigene Auswahl: Dabei";
+  color: #8ff0c9;
+  font-weight: 900;
+}
+
+.event-card.event-status-no .event-counts::before {
+  content: "Eigene Auswahl: Absage";
+  color: #ff9db2;
+  font-weight: 900;
+}
+
+.event-card.event-status-open .event-counts::before {
+  content: "Eigene Auswahl: Offen";
+  color: #ffc76f;
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  .event-card.event-status-yes,
+  .event-card.event-status-no,
+  .event-card.event-status-open {
+    box-shadow: inset 4px 0 0 currentColor;
+  }
+
+  .event-card.event-status-yes {
+    color: #f7fffb;
+  }
+
+  .event-card.event-status-no {
+    color: #fff8fa;
+  }
+
+  .event-card.event-status-open {
+    color: #fffaf1;
+  }
+
+  .event-counts::before {
+    flex-basis: 100%;
+    font-size: 12px;
+  }
+}
