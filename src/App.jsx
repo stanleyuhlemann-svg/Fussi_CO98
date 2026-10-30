@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
+import './event-mobile.css'
 
 const TEAM_SIZES = [3, 4, 5, 6]
 const RESPONSE_LABELS = { yes: 'Ich bin dabei', no: 'Ich bin nicht dabei', open: 'Noch offen' }
@@ -658,7 +659,7 @@ export default function App() {
         </>}
       </main>
 
-      <nav className="bottom-navigation">
+      <nav className="bottom-navigation mobile-main-navigation">
         <button className={tab === 'anmelden' ? 'active' : ''} onClick={() => setTab('anmelden')}>⚽ <span>Anmelden</span></button>
         <button className={tab === 'runden' ? 'active' : ''} onClick={() => setTab('runden')}>🎲 <span>Spieltag auslosen</span></button>
         <button className={tab === 'ranking' ? 'active' : ''} onClick={() => { setTab('ranking'); loadRanking() }}>🏆 <span>Ranking</span></button>
@@ -677,47 +678,52 @@ function EventCard({ eventItem, profiles, responses, currentUserId, expanded, bu
   const own = responses.find((response) => response.player_id === currentUserId)
   const ownStatus = own?.status || 'open'
 
-  return <div style={{ marginTop: 14, padding: 16, borderRadius: 16, background: '#081728', border: '1px solid #263c54' }}>
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-      <div style={{ minWidth: 0 }}>
-        <strong style={{ display: 'block', fontSize: 18 }}>{eventItem.title}</strong>
-        <span>{formatDate(eventItem.start_date)} · Ort: {eventItem.location}</span>
+  return <div className="event-card">
+    <div className="event-card-header">
+      <div className="event-card-heading">
+        <strong>{eventItem.title}</strong>
+        <span>{formatDate(eventItem.start_date)} · {eventItem.location}</span>
       </div>
       <button
         type="button"
-        className="primary-button"
+        className="event-toggle-button"
         onClick={onToggle}
         aria-expanded={expanded}
-        style={{ flex: '0 0 auto', minWidth: 92 }}
       >
         {expanded ? 'Schließen' : 'Öffnen'}
       </button>
     </div>
-    <p>✅ Dabei ({yesPlayers.length}) · ❌ Nicht dabei ({noPlayers.length}) · ❓ Offen ({openPlayers.length})</p>
 
-    {expanded && <div>
-      {eventItem.description && <p>{eventItem.description}</p>}
+    <div className="event-counts">
+      <span>✅ {yesPlayers.length}</span>
+      <span>❌ {noPlayers.length}</span>
+      <span>❓ {openPlayers.length}</span>
+    </div>
+
+    {expanded && <div className="event-details">
+      {eventItem.description && <p className="event-description">{eventItem.description}</p>}
       <h3>Meine Teilnahme</h3>
       <p>Aktuell: {RESPONSE_LABELS[ownStatus]}</p>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <button type="button" className={ownStatus === 'yes' ? 'primary-button' : 'secondary-button'} disabled={busy} onClick={() => onResponse('yes')}>✅ Ich bin dabei</button>
-        <button type="button" className={ownStatus === 'no' ? 'primary-button' : 'secondary-button'} disabled={busy} onClick={() => onResponse('no')}>❌ Ich bin nicht dabei</button>
-        <button type="button" className={ownStatus === 'open' ? 'primary-button' : 'secondary-button'} disabled={busy} onClick={() => onResponse('open')}>❓ Noch offen</button>
+
+      <div className="event-response-buttons">
+        <button type="button" className={ownStatus === 'yes' ? 'active' : ''} disabled={busy} onClick={() => onResponse('yes')}>✅ <span>Dabei</span></button>
+        <button type="button" className={ownStatus === 'no' ? 'active' : ''} disabled={busy} onClick={() => onResponse('no')}>❌ <span>Absage</span></button>
+        <button type="button" className={ownStatus === 'open' ? 'active' : ''} disabled={busy} onClick={() => onResponse('open')}>❓ <span>Offen</span></button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10 }}>
+      <div className="event-people-grid">
         <PeopleGroup title={`Dabei (${yesPlayers.length})`} players={yesPlayers} />
         <PeopleGroup title={`Nicht dabei (${noPlayers.length})`} players={noPlayers} />
         <PeopleGroup title={`Noch offen (${openPlayers.length})`} players={openPlayers} />
       </div>
 
-      {isAdmin && <button type="button" disabled={busy} onClick={onDelete} style={{ marginTop: 16 }}>🗑️ Event löschen</button>}
+      {isAdmin && <button type="button" className="event-delete-button" disabled={busy} onClick={onDelete}>🗑️ Event löschen</button>}
     </div>}
   </div>
 }
 
 function PeopleGroup({ title, players }) {
-  return <div style={{ padding: 12, borderRadius: 12, background: '#102034', border: '1px solid #263c54' }}>
+  return <div className="event-people-group">
     <h3>{title}</h3>
     {players.length === 0 ? <p>–</p> : players.map((player) => <div key={player.id}>{player.display_name}</div>)}
   </div>
