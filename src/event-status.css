@@ -83,3 +83,109 @@
     font-size: 12px;
   }
 }
+
+/* ============================================================
+   CO98 RANKING
+   Ruhigere Tabellenoptik und saubere Zentrierung der Zahlen.
+   ============================================================ */
+
+/* Spielername bleibt links, alle Zahlen-/Statistikspalten mittig. */
+.content-card table th,
+.content-card table td {
+  vertical-align: middle;
+}
+
+.content-card table th:not(:nth-child(2)),
+.content-card table td:not(:nth-child(2)) {
+  text-align: center !important;
+}
+
+.content-card table th:nth-child(2),
+.content-card table td:nth-child(2) {
+  text-align: left !important;
+}
+
+.content-card table thead th {
+  height: 46px;
+  padding: 10px 12px;
+  background: #55e9b3;
+  color: #052017;
+  font-weight: 900;
+  border-right: 1px solid rgba(5, 32, 23, 0.32);
+}
+
+.content-card table thead th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.content-card table thead th:last-child {
+  border-top-right-radius: 10px;
+  border-right: 0;
+}
+
+.content-card table tbody td {
+  height: 42px;
+  padding: 8px 12px;
+  border-right: 1px solid #263c54;
+  border-bottom: 1px solid #263c54;
+  font-variant-numeric: tabular-nums;
+}
+
+.content-card table tbody td:last-child {
+  border-right: 0;
+}
+
+.content-card table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.content-card table tbody td:nth-child(2) {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Punkte und ELO optisch etwas wichtiger als die Einzelstatistik. */
+.content-card table tbody td:nth-child(7),
+.content-card table tbody td:nth-child(8) {
+  font-weight: 900;
+  color: #9ff1d2;
+}
+
+/* Platzierung kompakter und eindeutig mittig. */
+.content-card table th:first-child,
+.content-card table td:first-child {
+  width: 58px;
+}
+
+/* Spieler bekommt mehr Platz, Statistikspalten bleiben kompakt. */
+.content-card table th:nth-child(2),
+.content-card table td:nth-child(2) {
+  width: 220px;
+}
+
+.content-card table th:nth-child(3),
+.content-card table td:nth-child(3),
+.content-card table th:nth-child(4),
+.content-card table td:nth-child(4),
+.content-card table th:nth-child(5),
+.content-card table td:nth-child(5),
+.content-card table th:nth-child(6),
+.content-card table td:nth-child(6) {
+  width: 76px;
+}
+
+@media (max-width: 760px) {
+  .content-card table {
+    min-width: 620px;
+  }
+
+  .content-card table thead th,
+  .content-card table tbody td {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  .content-card table tbody td {
+    height: 38px;
+  }
+}
