@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
 import './event-mobile.css'
+import './event-status.css'
 
 const TEAM_SIZES = [3, 4, 5, 6]
 const RESPONSE_LABELS = { yes: 'Ich bin dabei', no: 'Ich bin nicht dabei', open: 'Noch offen' }
@@ -772,7 +773,7 @@ function EventCard({ eventItem, profiles, responses, currentUserId, expanded, bu
   const own = responses.find((response) => response.player_id === currentUserId)
   const ownStatus = own?.status || 'open'
 
-  return <div className="event-card">
+  return <div className={`event-card event-status-${ownStatus}`}>
     <div className="event-card-header">
       <div className="event-card-heading">
         <strong>{eventItem.title}</strong>
