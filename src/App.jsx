@@ -369,7 +369,6 @@ export default function App() {
 
   async function drawTeams() {
     resetFeedback()
-    if (!profile?.is_admin) return
     if (round) return setError('Für diesen Spieltag existiert bereits eine Auslosung.')
     const needed = teamSize * 2
     if (participants.length < needed) return setError(`Für ${teamSize} vs. ${teamSize} werden mindestens ${needed} Teilnehmer benötigt.`)
@@ -402,7 +401,12 @@ export default function App() {
   }
 
   async function deleteDraw() {
-    if (!profile?.is_admin || !round || !window.confirm('Auslosung wirklich löschen?')) return
+    if (!round) return
+    if (round.status === 'finished') {
+      setError('Eine bereits abgeschlossene und gewertete Runde kann nicht gelöscht werden.')
+      return
+    }
+    if (!window.confirm('Auslosung wirklich löschen? Danach kann erneut ausgelost werden.')) return
     setBusy(true); resetFeedback()
     const { error: e } = await supabase.from('rounds').delete().eq('id', round.id)
     if (e) setError(e.message)
@@ -509,9 +513,9 @@ export default function App() {
         {tab === 'runden' && <>
           <section className="content-card"><h1>🎲 Runden</h1>
             {!selectedDay ? <p>Bitte zuerst einen Spieltag auswählen.</p> : <p><strong>{formatDate(selectedDay.match_date)}</strong> · {participants.length} Teilnehmer</p>}
-            {!round && profile?.is_admin && <><div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginBottom: 18 }}>{TEAM_SIZES.map((size) => <button key={size} onClick={() => setTeamSize(size)}>{size} vs. {size}</button>)}</div><button className="primary-button" onClick={drawTeams}>🎲 Mannschaften auslosen</button></>}
+            {!round && <><div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginBottom: 18 }}>{TEAM_SIZES.map((size) => <button key={size} onClick={() => setTeamSize(size)}>{size} vs. {size}</button>)}</div><button className="primary-button" onClick={drawTeams}>🎲 Mannschaften auslosen</button></>}
           </section>
-          {round && <><TeamCard title="⚫ Team A" members={teamA} /><TeamCard title="⚪ Team B" members={teamB} />{profile?.is_admin && <section className="content-card"><button onClick={deleteDraw}>🗑️ Auslosung löschen</button></section>}</>}
+          {round && <><TeamCard title="⚫ Team A" members={teamA} /><TeamCard title="⚪ Team B" members={teamB} /><section className="content-card"><button onClick={deleteDraw}>🗑️ Auslosung löschen</button></section></>}
         </>}
 
         {tab === 'ranking' && <section className="content-card"><h1>🏆 Ranking</h1><p>Gastspieler werden hier bewusst nicht geführt.</p><div style={{ overflowX: 'auto' }}><table><thead><tr><th>#</th><th>Spieler</th><th>Sp.</th><th>S</th><th>U</th><th>N</th><th>Punkte</th><th>ELO</th></tr></thead><tbody>{ranking.map((p, i) => <tr key={p.id}><td>{i + 1}.</td><td>{p.display_name}</td><td>{p.games}</td><td>{p.wins}</td><td>{p.draws}</td><td>{p.losses}</td><td>{p.points}</td><td>{p.elo}</td></tr>)}</tbody></table></div></section>}
