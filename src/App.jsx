@@ -221,7 +221,7 @@ export default function App() {
   async function loadRanking() {
     const [profilesResult, resultsResult] = await Promise.all([
       supabase.from('profiles').select('id, display_name, elo'),
-      supabase.from('player_results').select('player_id, result, attendance_points, result_points'),
+      supabase.from('player_results').select('player_id, result, result_points'),
     ])
     if (profilesResult.error || resultsResult.error) return
     const map = new Map((profilesResult.data || []).map((player) => [player.id, {
@@ -231,10 +231,17 @@ export default function App() {
       const player = map.get(result.player_id)
       if (!player) continue
       player.games += 1
-      player.points += Number(result.attendance_points || 0) + Number(result.result_points || 0)
-      if (result.result === 'win') player.wins += 1
-      if (result.result === 'draw') player.draws += 1
-      if (result.result === 'loss') player.losses += 1
+      if (result.result === 'win') {
+        player.wins += 1
+        player.points += 3
+      }
+      if (result.result === 'draw') {
+        player.draws += 1
+        player.points += 1
+      }
+      if (result.result === 'loss') {
+        player.losses += 1
+      }
     }
     setRanking([...map.values()].sort((a, b) => b.points - a.points || b.elo - a.elo))
   }
