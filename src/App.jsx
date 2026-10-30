@@ -94,6 +94,8 @@ export default function App() {
   const [teamSize, setTeamSize] = useState(3)
   const [guestName, setGuestName] = useState('')
   const [guestElo, setGuestElo] = useState('1000')
+  const [goalsA, setGoalsA] = useState('')
+  const [goalsB, setGoalsB] = useState('')
 
   const [events, setEvents] = useState([])
   const [eventResponses, setEventResponses] = useState([])
@@ -216,6 +218,8 @@ export default function App() {
       is_guest: Boolean(member.guest_player_id),
     })))
     setTeamSize(currentRound.team_size)
+    setGoalsA(currentRound.goals_a == null ? '' : String(currentRound.goals_a))
+    setGoalsB(currentRound.goals_b == null ? '' : String(currentRound.goals_b))
   }
 
   async function loadRanking() {
@@ -466,6 +470,44 @@ export default function App() {
     setBusy(false)
   }
 
+  async function finishRound(event) {
+    event.preventDefault()
+    resetFeedback()
+    if (!round) return
+
+    const parsedGoalsA = Number(goalsA)
+    const parsedGoalsB = Number(goalsB)
+
+    if (!Number.isInteger(parsedGoalsA) || !Number.isInteger(parsedGoalsB) || parsedGoalsA < 0 || parsedGoalsB < 0) {
+      setError('Bitte für beide Teams ganze Tore ab 0 eingeben.')
+      return
+    }
+
+    if (!window.confirm(`Ergebnis ${parsedGoalsA}:${parsedGoalsB} wirklich endgültig werten? Danach werden Punkte und ELO berechnet.`)) return
+
+    setBusy(true)
+    const { data, error: resultError } = await supabase.rpc('finish_round', {
+      p_round_id: round.id,
+      p_goals_a: parsedGoalsA,
+      p_goals_b: parsedGoalsB,
+    })
+
+    if (resultError) {
+      setError(resultError.message)
+      setBusy(false)
+      return
+    }
+
+    setMessage(
+      `Ergebnis ${parsedGoalsA}:${parsedGoalsB} gespeichert. ` +
+      `ELO Team A ${data?.elo_delta_a >= 0 ? '+' : ''}${data?.elo_delta_a}, ` +
+      `Team B ${data?.elo_delta_b >= 0 ? '+' : ''}${data?.elo_delta_b}.`
+    )
+
+    await Promise.all([loadDay(selectedDay.id), loadRanking()])
+    setBusy(false)
+  }
+
   async function deleteDraw() {
     if (!round) return
     if (round.status === 'finished') return setError('Eine bereits gewertete Runde kann nicht gelöscht werden.')
@@ -618,9 +660,28 @@ export default function App() {
           {round && <>
             <TeamCard title="⚫ Team A" members={teamA} />
             <TeamCard title="⚪ Team B" members={teamB} />
-            <section className="content-card">
-              <button disabled={busy} onClick={deleteDraw}>🗑️ Auslosung löschen</button>
-            </section>
+
+            {round.status === 'drawn' ? (
+              <section className="content-card">
+                <h2>⚽ Ergebnis eintragen</h2>
+                <p>Ranking: Sieg 3 Punkte · Unentschieden 1 Punkt · Niederlage 0 Punkte · keine Anwesenheitspunkte.</p>
+                <form onSubmit={finishRound}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 10, alignItems: 'end' }}>
+                    <label>Team A<input type="number" min="0" step="1" inputMode="numeric" value={goalsA} onChange={(event) => setGoalsA(event.target.value)} required /></label>
+                    <strong style={{ paddingBottom: 13, fontSize: 22 }}>:</strong>
+                    <label>Team B<input type="number" min="0" step="1" inputMode="numeric" value={goalsB} onChange={(event) => setGoalsB(event.target.value)} required /></label>
+                  </div>
+                  <button className="primary-button" disabled={busy}>✅ Ergebnis endgültig speichern</button>
+                </form>
+                <button style={{ marginTop: 14 }} disabled={busy} onClick={deleteDraw}>🗑️ Auslosung löschen</button>
+              </section>
+            ) : (
+              <section className="content-card">
+                <h2>✅ Gewertetes Ergebnis</h2>
+                <p style={{ fontSize: 32, fontWeight: 900, color: '#ffffff' }}>{round.goals_a} : {round.goals_b}</p>
+                <p>Punkte und ELO wurden gespeichert. Eine gewertete Runde kann nicht über „Auslosung löschen“ entfernt werden.</p>
+              </section>
+            )}
           </>}
         </>}
 
