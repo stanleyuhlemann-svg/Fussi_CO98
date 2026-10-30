@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
 
 const TEAM_SIZES = [3, 4, 5, 6]
+const RESPONSE_LABELS = { yes: 'Ich bin dabei', no: 'Ich bin nicht dabei', open: 'Noch offen' }
 
 function formatDate(value) {
   if (!value) return ''
@@ -58,7 +59,6 @@ function buildBalancedTeams(participants, teamSize) {
     const difference = Math.abs(averageElo(teamA) - averageElo(teamB))
     if (!best || difference < best.difference) best = { teamA, teamB, difference }
   }
-
   if (!best) return { teamA: [], teamB: [] }
   return {
     teamA: shuffle(best.teamA).map((player, index) => ({ ...player, is_backup: index >= teamSize })),
@@ -69,6 +69,7 @@ function buildBalancedTeams(participants, teamSize) {
 export default function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [allProfiles, setAllProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [mode, setMode] = useState('login')
@@ -79,6 +80,7 @@ export default function App() {
   const [displayName, setDisplayName] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
   const [matchDays, setMatchDays] = useState([])
   const [selectedDayId, setSelectedDayId] = useState(null)
   const [registrations, setRegistrations] = useState([])
@@ -91,6 +93,14 @@ export default function App() {
   const [teamSize, setTeamSize] = useState(3)
   const [guestName, setGuestName] = useState('')
   const [guestElo, setGuestElo] = useState('1000')
+
+  const [events, setEvents] = useState([])
+  const [eventResponses, setEventResponses] = useState([])
+  const [selectedEventId, setSelectedEventId] = useState(null)
+  const [eventTitle, setEventTitle] = useState('')
+  const [eventStartDate, setEventStartDate] = useState('')
+  const [eventLocation, setEventLocation] = useState('')
+  const [eventDescription, setEventDescription] = useState('')
 
   const selectedDay = useMemo(
     () => matchDays.find((day) => String(day.id) === String(selectedDayId)) || null,
@@ -154,11 +164,12 @@ export default function App() {
   async function loadInitialData() {
     setLoading(true)
     resetFeedback()
-    const [profileResult, daysResult] = await Promise.all([
+    const [profileResult, daysResult, profilesResult] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', session.user.id).single(),
       supabase.from('match_days').select('*').order('match_date').order('start_time'),
+      supabase.from('profiles').select('id, display_name, elo').order('display_name'),
     ])
-    const firstError = profileResult.error || daysResult.error
+    const firstError = profileResult.error || daysResult.error || profilesResult.error
     if (firstError) {
       setError(firstError.message)
       setLoading(false)
@@ -166,11 +177,12 @@ export default function App() {
     }
     setProfile(profileResult.data)
     setMatchDays(daysResult.data || [])
+    setAllProfiles(profilesResult.data || [])
     const today = new Date(); today.setHours(0, 0, 0, 0)
     const next = (daysResult.data || []).find((day) =>
       new Date(`${day.match_date}T12:00:00`) >= today && day.status !== 'finished') || daysResult.data?.[0]
     if (next && !selectedDayId) setSelectedDayId(next.id)
-    await loadRanking()
+    await Promise.all([loadRanking(), loadEvents()])
     setLoading(false)
   }
 
@@ -224,6 +236,67 @@ export default function App() {
       if (result.result === 'loss') player.losses += 1
     }
     setRanking([...map.values()].sort((a, b) => b.points - a.points || b.elo - a.elo))
+  }
+
+  async function loadEvents() {
+    const [eventsResult, responsesResult] = await Promise.all([
+      supabase.from('events').select('*').order('start_date', { ascending: true }),
+      supabase.from('event_responses').select('*'),
+    ])
+    const firstError = eventsResult.error || responsesResult.error
+    if (firstError) return setError(firstError.message)
+    setEvents(eventsResult.data || [])
+    setEventResponses(responsesResult.data || [])
+  }
+
+  async function setEventResponse(eventId, status) {
+    setBusy(true); resetFeedback()
+    if (status === 'open') {
+      const { error: deleteError } = await supabase.from('event_responses').delete()
+        .eq('event_id', eventId).eq('player_id', session.user.id)
+      if (deleteError) setError(deleteError.message)
+      else setMessage('Ihre Auswahl steht wieder auf „Noch offen“.')
+    } else {
+      const { error: saveError } = await supabase.from('event_responses').upsert({
+        event_id: eventId, player_id: session.user.id, status,
+      }, { onConflict: 'event_id,player_id' })
+      if (saveError) setError(saveError.message)
+      else setMessage(status === 'yes' ? 'Sie sind für das Event dabei.' : 'Sie sind für das Event abgemeldet.')
+    }
+    await loadEvents()
+    setBusy(false)
+  }
+
+  async function createEvent(event) {
+    event.preventDefault(); resetFeedback()
+    if (!profile?.is_admin) return
+    if (!eventTitle.trim() || !eventStartDate || !eventLocation.trim()) return setError('Bitte Event, Startdatum und Ort ausfüllen.')
+    setBusy(true)
+    const { error: saveError } = await supabase.from('events').insert({
+      title: eventTitle.trim(), start_date: eventStartDate, location: eventLocation.trim(),
+      description: eventDescription.trim() || null, created_by: session.user.id,
+    })
+    if (saveError) setError(saveError.message)
+    else {
+      setEventTitle(''); setEventStartDate(''); setEventLocation(''); setEventDescription('')
+      setMessage('Event wurde angelegt.')
+      await loadEvents()
+    }
+    setBusy(false)
+  }
+
+  async function deleteEvent(eventItem) {
+    if (!profile?.is_admin) return
+    if (!window.confirm(`Event „${eventItem.title}“ wirklich löschen?`)) return
+    setBusy(true); resetFeedback()
+    const { error: deleteError } = await supabase.from('events').delete().eq('id', eventItem.id)
+    if (deleteError) setError(deleteError.message)
+    else {
+      if (selectedEventId === eventItem.id) setSelectedEventId(null)
+      setMessage('Event wurde gelöscht.')
+      await loadEvents()
+    }
+    setBusy(false)
   }
 
   async function handleLogin(event) {
@@ -550,15 +623,93 @@ export default function App() {
             {ranking.map((player, index) => <tr key={player.id}><td>{index + 1}.</td><td>{player.display_name}</td><td>{player.games}</td><td>{player.wins}</td><td>{player.draws}</td><td>{player.losses}</td><td>{player.points}</td><td>{player.elo}</td></tr>)}
           </tbody></table></div>
         </section>}
+
+        {tab === 'events' && <>
+          <section className="content-card">
+            <h1>🎉 Events</h1>
+            <p>Kommende Veranstaltungen, nach Startdatum sortiert.</p>
+            {events.length === 0 ? <p>Noch keine Events angelegt.</p> : events.map((eventItem) => (
+              <EventCard
+                key={eventItem.id}
+                eventItem={eventItem}
+                profiles={allProfiles}
+                responses={eventResponses.filter((response) => response.event_id === eventItem.id)}
+                currentUserId={session.user.id}
+                expanded={selectedEventId === eventItem.id}
+                busy={busy}
+                isAdmin={Boolean(profile?.is_admin)}
+                onToggle={() => setSelectedEventId(selectedEventId === eventItem.id ? null : eventItem.id)}
+                onResponse={(status) => setEventResponse(eventItem.id, status)}
+                onDelete={() => deleteEvent(eventItem)}
+              />
+            ))}
+          </section>
+
+          {profile?.is_admin && <section className="content-card">
+            <h2>⚙️ Admin · Event anlegen</h2>
+            <form onSubmit={createEvent}>
+              <label>Event<input value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} placeholder="z. B. Weihnachtsfeier" required /></label>
+              <label>Startdatum<input type="date" value={eventStartDate} onChange={(event) => setEventStartDate(event.target.value)} required /></label>
+              <label>Ort<input value={eventLocation} onChange={(event) => setEventLocation(event.target.value)} placeholder="z. B. Brauhaus Hannover" required /></label>
+              <label>Beschreibung / Freitext<textarea value={eventDescription} onChange={(event) => setEventDescription(event.target.value)} rows="4" placeholder="Weitere Informationen zum Event" /></label>
+              <button className="primary-button" disabled={busy}>+ Event anlegen</button>
+            </form>
+          </section>}
+        </>}
       </main>
 
       <nav className="bottom-navigation">
         <button className={tab === 'anmelden' ? 'active' : ''} onClick={() => setTab('anmelden')}>⚽ <span>Anmelden</span></button>
         <button className={tab === 'runden' ? 'active' : ''} onClick={() => setTab('runden')}>🎲 <span>Spieltag auslosen</span></button>
         <button className={tab === 'ranking' ? 'active' : ''} onClick={() => { setTab('ranking'); loadRanking() }}>🏆 <span>Ranking</span></button>
+        <button className={tab === 'events' ? 'active' : ''} onClick={() => { setTab('events'); loadEvents() }}>🎉 <span>Events</span></button>
       </nav>
     </div>
   )
+}
+
+function EventCard({ eventItem, profiles, responses, currentUserId, expanded, busy, isAdmin, onToggle, onResponse, onDelete }) {
+  const yesIds = new Set(responses.filter((response) => response.status === 'yes').map((response) => response.player_id))
+  const noIds = new Set(responses.filter((response) => response.status === 'no').map((response) => response.player_id))
+  const yesPlayers = profiles.filter((player) => yesIds.has(player.id))
+  const noPlayers = profiles.filter((player) => noIds.has(player.id))
+  const openPlayers = profiles.filter((player) => !yesIds.has(player.id) && !noIds.has(player.id))
+  const own = responses.find((response) => response.player_id === currentUserId)
+  const ownStatus = own?.status || 'open'
+
+  return <div style={{ marginTop: 14, padding: 16, borderRadius: 16, background: '#081728', border: '1px solid #263c54' }}>
+    <button type="button" onClick={onToggle} style={{ width: '100%', textAlign: 'left' }}>
+      <strong>{eventItem.title}</strong><br />
+      <span>{formatDate(eventItem.start_date)} · Ort: {eventItem.location}</span>
+    </button>
+    <p>✅ Dabei ({yesPlayers.length}) · ❌ Nicht dabei ({noPlayers.length}) · ❓ Offen ({openPlayers.length})</p>
+
+    {expanded && <div>
+      {eventItem.description && <p>{eventItem.description}</p>}
+      <h3>Meine Teilnahme</h3>
+      <p>Aktuell: {RESPONSE_LABELS[ownStatus]}</p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+        <button type="button" className={ownStatus === 'yes' ? 'primary-button' : 'secondary-button'} disabled={busy} onClick={() => onResponse('yes')}>✅ Ich bin dabei</button>
+        <button type="button" className={ownStatus === 'no' ? 'primary-button' : 'secondary-button'} disabled={busy} onClick={() => onResponse('no')}>❌ Ich bin nicht dabei</button>
+        <button type="button" className={ownStatus === 'open' ? 'primary-button' : 'secondary-button'} disabled={busy} onClick={() => onResponse('open')}>❓ Noch offen</button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10 }}>
+        <PeopleGroup title={`Dabei (${yesPlayers.length})`} players={yesPlayers} />
+        <PeopleGroup title={`Nicht dabei (${noPlayers.length})`} players={noPlayers} />
+        <PeopleGroup title={`Noch offen (${openPlayers.length})`} players={openPlayers} />
+      </div>
+
+      {isAdmin && <button type="button" disabled={busy} onClick={onDelete} style={{ marginTop: 16 }}>🗑️ Event löschen</button>}
+    </div>}
+  </div>
+}
+
+function PeopleGroup({ title, players }) {
+  return <div style={{ padding: 12, borderRadius: 12, background: '#102034', border: '1px solid #263c54' }}>
+    <h3>{title}</h3>
+    {players.length === 0 ? <p>–</p> : players.map((player) => <div key={player.id}>{player.display_name}</div>)}
+  </div>
 }
 
 function MatchDaySelect({ matchDays, selectedDayId, setSelectedDayId, label = 'Spieltag' }) {
