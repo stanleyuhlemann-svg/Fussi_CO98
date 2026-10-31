@@ -98,6 +98,7 @@ export default function App() {
   const [round, setRound] = useState(null)
   const [teamMembers, setTeamMembers] = useState([])
   const [ranking, setRanking] = useState([])
+  const [selectedRankingPlayerId, setSelectedRankingPlayerId] = useState(null)
   const [newMatchDate, setNewMatchDate] = useState('')
   const [newMatchTime, setNewMatchTime] = useState('19:00')
   const [teamSize, setTeamSize] = useState(3)
@@ -712,12 +713,68 @@ export default function App() {
           </>}
         </>}
 
-        {tab === 'ranking' && <section className="content-card">
+        {tab === 'ranking' && <section className="content-card ranking-card">
           <h1>🏆 Ranking</h1>
           <p>Gastspieler werden hier bewusst nicht geführt.</p>
-          <div style={{ overflowX: 'auto' }}><table><thead><tr><th>#</th><th>Spieler</th><th>Sp.</th><th>S</th><th>U</th><th>N</th><th>Punkte</th><th>ELO</th></tr></thead><tbody>
-            {ranking.map((player, index) => <tr key={player.id}><td>{index + 1}.</td><td>{player.display_name}</td><td>{player.games}</td><td>{player.wins}</td><td>{player.draws}</td><td>{player.losses}</td><td>{player.points}</td><td>{player.elo}</td></tr>)}
-          </tbody></table></div>
+          <div className="ranking-table-wrap">
+            <table className="ranking-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Spieler</th>
+                  <th>Sp.</th>
+                  <th className="ranking-desktop-only">S</th>
+                  <th className="ranking-desktop-only">U</th>
+                  <th className="ranking-desktop-only">N</th>
+                  <th>Punkte</th>
+                  <th>ELO</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ranking.map((player, index) => <tr key={player.id}>
+                  <td>{index + 1}.</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="ranking-player-button"
+                      onClick={() => setSelectedRankingPlayerId(selectedRankingPlayerId === player.id ? null : player.id)}
+                      aria-expanded={selectedRankingPlayerId === player.id}
+                    >
+                      {player.display_name}<span>›</span>
+                    </button>
+                  </td>
+                  <td>{player.games}</td>
+                  <td className="ranking-desktop-only">{player.wins}</td>
+                  <td className="ranking-desktop-only">{player.draws}</td>
+                  <td className="ranking-desktop-only">{player.losses}</td>
+                  <td>{player.points}</td>
+                  <td>{player.elo}</td>
+                </tr>)}
+              </tbody>
+            </table>
+          </div>
+
+          {selectedRankingPlayerId && (() => {
+            const selectedPlayer = ranking.find((player) => player.id === selectedRankingPlayerId)
+            if (!selectedPlayer) return null
+            return <div className="ranking-player-details">
+              <div className="ranking-detail-header">
+                <div>
+                  <h2>{selectedPlayer.display_name}</h2>
+                  <p>Persönliche Statistik</p>
+                </div>
+                <button type="button" onClick={() => setSelectedRankingPlayerId(null)}>Schließen</button>
+              </div>
+              <div className="ranking-detail-grid">
+                <div><span>Spiele</span><strong>{selectedPlayer.games}</strong></div>
+                <div><span>Punkte</span><strong>{selectedPlayer.points}</strong></div>
+                <div><span>ELO</span><strong>{selectedPlayer.elo}</strong></div>
+                <div><span>Siege</span><strong>{selectedPlayer.wins}</strong></div>
+                <div><span>Unentschieden</span><strong>{selectedPlayer.draws}</strong></div>
+                <div><span>Niederlagen</span><strong>{selectedPlayer.losses}</strong></div>
+              </div>
+            </div>
+          })()}
         </section>}
 
         {tab === 'events' && <>
