@@ -189,3 +189,189 @@
     height: 38px;
   }
 }
+
+/* ============================================================
+   CO98 RANKING - MOBILE KOMPAKT + SPIELERDETAILS
+   ============================================================ */
+
+.ranking-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+}
+
+.ranking-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.ranking-player-button {
+  width: 100%;
+  min-height: 34px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  font-weight: 900;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.ranking-player-button:hover,
+.ranking-player-button[aria-expanded="true"] {
+  background: #203754;
+  color: #9ff1d2;
+}
+
+.ranking-player-button span {
+  color: #55e9b3;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ranking-player-details {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid #36506d;
+  border-radius: 16px;
+  background: #081728;
+}
+
+.ranking-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.ranking-detail-header h2,
+.ranking-detail-header p {
+  margin: 0;
+}
+
+.ranking-detail-header p {
+  margin-top: 4px;
+}
+
+.ranking-detail-header button {
+  width: auto !important;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #36506d;
+  border-radius: 999px;
+  background: #203754;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.ranking-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ranking-detail-grid > div {
+  padding: 12px 8px;
+  border: 1px solid #263c54;
+  border-radius: 12px;
+  background: #102034 !important;
+  text-align: center;
+}
+
+.ranking-detail-grid span {
+  display: block;
+  min-height: 32px;
+  color: #9bc5e8;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.ranking-detail-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: #9ff1d2;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+  .ranking-card {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .ranking-table-wrap {
+    overflow-x: hidden;
+  }
+
+  .ranking-table {
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .ranking-desktop-only {
+    display: none !important;
+  }
+
+  .ranking-table th,
+  .ranking-table td {
+    padding: 8px 5px !important;
+    font-size: 13px !important;
+  }
+
+  .ranking-table th:nth-child(1),
+  .ranking-table td:nth-child(1) {
+    width: 9% !important;
+  }
+
+  .ranking-table th:nth-child(2),
+  .ranking-table td:nth-child(2) {
+    width: 35% !important;
+  }
+
+  .ranking-table th:nth-child(3),
+  .ranking-table td:nth-child(3) {
+    width: 14% !important;
+  }
+
+  .ranking-table th:nth-child(7),
+  .ranking-table td:nth-child(7) {
+    width: 21% !important;
+  }
+
+  .ranking-table th:nth-child(8),
+  .ranking-table td:nth-child(8) {
+    width: 21% !important;
+  }
+
+  .ranking-player-button {
+    min-height: 30px;
+    padding: 3px 4px;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .ranking-player-button span {
+    font-size: 17px;
+    flex: 0 0 auto;
+  }
+
+  .ranking-detail-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .ranking-detail-grid > div {
+    padding: 9px 4px;
+  }
+
+  .ranking-detail-grid strong {
+    font-size: 18px;
+  }
+}
