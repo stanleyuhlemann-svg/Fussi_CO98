@@ -120,6 +120,16 @@ export default function App() {
     [matchDays, selectedDayId]
   )
 
+  const signupMatchDays = useMemo(
+    () => matchDays.filter((day) => day.match_date >= getLocalDateString()),
+    [matchDays]
+  )
+
+  const nextMatchDay = useMemo(
+    () => signupMatchDays.find((day) => day.status !== 'finished') || signupMatchDays[0] || null,
+    [signupMatchDays]
+  )
+
   const registeredPlayers = useMemo(
     () => registrations.filter((item) => item.status === 'registered').sort((a, b) =>
       String(a.profiles?.display_name || '').localeCompare(String(b.profiles?.display_name || ''), 'de')),
@@ -182,7 +192,6 @@ export default function App() {
       supabase
         .from('match_days')
         .select('*')
-        .gte('match_date', getLocalDateString())
         .order('match_date')
         .order('start_time'),
       supabase.from('profiles').select('id, display_name, elo').order('display_name'),
@@ -197,7 +206,9 @@ export default function App() {
     setMatchDays(daysResult.data || [])
     setAllProfiles(profilesResult.data || [])
     const availableDays = daysResult.data || []
-    const next = availableDays.find((day) => day.status !== 'finished') || availableDays[0]
+    const today = getLocalDateString()
+    const upcomingDays = availableDays.filter((day) => day.match_date >= today)
+    const next = upcomingDays.find((day) => day.status !== 'finished') || upcomingDays[0] || null
     const selectedDayStillAvailable = availableDays.some(
       (day) => String(day.id) === String(selectedDayId)
     )
@@ -206,7 +217,7 @@ export default function App() {
       setSelectedDayId(next.id)
     }
 
-    if (!next) {
+    if (!availableDays.length) {
       setSelectedDayId(null)
       setRegistrations([])
       setGuests([])
@@ -374,6 +385,39 @@ export default function App() {
     if (authError) return setError(authError.message)
     setPassword(''); setPasswordRepeat(''); setMode('login')
     setMessage('Das neue Passwort wurde erfolgreich gespeichert.')
+  }
+
+  function selectNextMatchDay() {
+    if (nextMatchDay) {
+      setSelectedDayId(nextMatchDay.id)
+    } else {
+      setSelectedDayId(null)
+    }
+  }
+
+  async function handleRefresh() {
+    if (busy) return
+    setBusy(true)
+    resetFeedback()
+
+    await loadInitialData()
+
+    if (selectedDayId) {
+      await loadDay(selectedDayId)
+    }
+
+    setMessage('Aktuelle Daten wurden geladen.')
+    setBusy(false)
+  }
+
+  function openSignupTab() {
+    setTab('anmelden')
+    selectNextMatchDay()
+  }
+
+  function openRoundsTab() {
+    setTab('runden')
+    selectNextMatchDay()
   }
 
   async function handleLogout() {
@@ -597,7 +641,37 @@ export default function App() {
     <div className="app-shell">
       <header className="app-header">
         <div><strong>CO98 Fussi</strong><span>Calidad óptica · seit 1998{profile?.is_admin ? ' · Admin' : ''}</span></div>
-        <button className="logout-button" onClick={handleLogout}>Abmelden</button>
+        <div
+          style={{
+            flex: '0 0 auto',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <button
+            type="button"
+            className="logout-button"
+            onClick={handleRefresh}
+            disabled={busy}
+            aria-label="Aktualisieren"
+            title="Aktualisieren"
+            style={{ width: 44, minWidth: 44, padding: 0, fontSize: 22 }}
+          >
+            ↻
+          </button>
+          <button
+            type="button"
+            className="logout-button"
+            onClick={handleLogout}
+            aria-label="Abmelden"
+            title="Abmelden"
+            style={{ width: 44, minWidth: 44, padding: 0, fontSize: 22 }}
+          >
+            ↪
+          </button>
+        </div>
       </header>
 
       <main className="app-content">
@@ -606,7 +680,7 @@ export default function App() {
         {tab === 'anmelden' && <>
           <section className="content-card">
             <h1>⚽ Anmelden</h1>
-            <MatchDaySelect matchDays={matchDays} selectedDayId={selectedDayId} setSelectedDayId={setSelectedDayId} />
+            <MatchDaySelect matchDays={signupMatchDays} selectedDayId={selectedDayId} setSelectedDayId={setSelectedDayId} />
             {selectedDay && <div style={{ marginTop: 20, padding: 18, borderRadius: 16, background: '#f5f5f5' }}>
               <strong style={{ display: 'block', fontSize: 20 }}>{formatDate(selectedDay.match_date)}</strong>
               <span>Beginn: {formatTime(selectedDay.start_time)} Uhr</span>
@@ -812,8 +886,8 @@ export default function App() {
       </main>
 
       <nav className="bottom-navigation mobile-main-navigation">
-        <button className={tab === 'anmelden' ? 'active' : ''} onClick={() => setTab('anmelden')}>⚽ <span>Anmelden</span></button>
-        <button className={tab === 'runden' ? 'active' : ''} onClick={() => setTab('runden')}>🎲 <span>Spieltag auslosen</span></button>
+        <button className={tab === 'anmelden' ? 'active' : ''} onClick={openSignupTab}>⚽ <span>Anmelden</span></button>
+        <button className={tab === 'runden' ? 'active' : ''} onClick={openRoundsTab}>🎲 <span>Spieltag auslosen</span></button>
         <button className={tab === 'ranking' ? 'active' : ''} onClick={() => { setTab('ranking'); loadRanking() }}>🏆 <span>Ranking</span></button>
         <button className={tab === 'events' ? 'active' : ''} onClick={() => { setTab('events'); loadEvents() }}>🎉 <span>Events</span></button>
       </nav>
