@@ -17,6 +17,14 @@ function formatTime(value) {
   return value ? String(value).slice(0, 5) : ''
 }
 
+function formatEloChange(value, emptyValue = '–') {
+  if (value === null || value === undefined) return emptyValue
+  const number = Number(value)
+  if (!Number.isFinite(number)) return emptyValue
+  if (number > 0) return `+${number}`
+  return String(number)
+}
+
 function getLocalDateString() {
   const today = new Date()
   const year = today.getFullYear()
@@ -263,17 +271,29 @@ export default function App() {
 
   async function loadRanking() {
     const [profilesResult, resultsResult] = await Promise.all([
-      supabase.from('profiles').select('id, display_name, elo'),
-      supabase.from('player_results').select('player_id, result, result_points'),
+      supabase.from('profiles').select('id, display_name, start_elo, elo'),
+      supabase.from('player_results').select('id, player_id, result, result_points, elo_before, elo_after').order('id', { ascending: true }),
     ])
     if (profilesResult.error || resultsResult.error) return
     const map = new Map((profilesResult.data || []).map((player) => [player.id, {
-      ...player, games: 0, wins: 0, draws: 0, losses: 0, points: 0,
+      ...player,
+      start_elo: Number(player.start_elo ?? player.elo ?? 1000),
+      elo: Number(player.elo ?? player.start_elo ?? 1000),
+      games: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      points: 0,
+      last_elo_change: null,
+      last_result_id: null,
     }]))
+
     for (const result of resultsResult.data || []) {
       const player = map.get(result.player_id)
       if (!player) continue
+
       player.games += 1
+
       if (result.result === 'win') {
         player.wins += 1
         player.points += 3
@@ -285,8 +305,21 @@ export default function App() {
       if (result.result === 'loss') {
         player.losses += 1
       }
+
+      if (
+        result.elo_before !== null &&
+        result.elo_after !== null &&
+        (player.last_result_id === null || Number(result.id) > Number(player.last_result_id))
+      ) {
+        player.last_result_id = result.id
+        player.last_elo_change = Number(result.elo_after) - Number(result.elo_before)
+      }
     }
-    setRanking([...map.values()].sort((a, b) => b.points - a.points || b.elo - a.elo))
+
+    setRanking([...map.values()].map((player) => ({
+      ...player,
+      elo_total: player.elo - player.start_elo,
+    })).sort((a, b) => b.points - a.points || b.elo - a.elo))
   }
 
   async function loadEvents() {
@@ -853,6 +886,25 @@ export default function App() {
                 <div><span>Siege</span><strong>{selectedPlayer.wins}</strong></div>
                 <div><span>Unentschieden</span><strong>{selectedPlayer.draws}</strong></div>
                 <div><span>Niederlagen</span><strong>{selectedPlayer.losses}</strong></div>
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <h3 style={{ marginBottom: 10 }}>ELO-Entwicklung</h3>
+                <div className="ranking-detail-grid">
+                  <div><span>Start-ELO</span><strong>{selectedPlayer.start_elo}</strong></div>
+                  <div><span>ELO aktuell</span><strong>{selectedPlayer.elo}</strong></div>
+                  <div>
+                    <span>ELO Total</span>
+                    <strong style={{ color: selectedPlayer.elo_total > 0 ? '#55e9b3' : selectedPlayer.elo_total < 0 ? '#ff8fa6' : '#9ff1d2' }}>
+                      {formatEloChange(selectedPlayer.elo_total, '0')}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>ELO letzter Spieltag</span>
+                    <strong style={{ color: selectedPlayer.last_elo_change > 0 ? '#55e9b3' : selectedPlayer.last_elo_change < 0 ? '#ff8fa6' : '#9ff1d2' }}>
+                      {formatEloChange(selectedPlayer.last_elo_change)}
+                    </strong>
+                  </div>
+                </div>
               </div>
             </div>
           })()}
