@@ -659,9 +659,9 @@ export default function App() {
             title="Aktualisieren"
             style={{ width: 44, minWidth: 44, padding: 0, display: 'grid', placeItems: 'center' }}
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M20 11a8 8 0 1 0-2.34 5.66" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M20 5v6h-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6v5h-5" />
+              <path d="M20 11a8 8 0 1 0-2.34 5.66" />
             </svg>
           </button>
           <button
@@ -672,9 +672,10 @@ export default function App() {
             title="Abmelden"
             style={{ width: 44, minWidth: 44, padding: 0, display: 'grid', placeItems: 'center' }}
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M10 5H6.8A1.8 1.8 0 0 0 5 6.8v10.4A1.8 1.8 0 0 0 6.8 19H10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M13 8l4 4-4 4M17 12H9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 8l4 4-4 4" />
+              <path d="M18 12H8" />
+              <path d="M10 5H6.8A1.8 1.8 0 0 0 5 6.8v10.4A1.8 1.8 0 0 0 6.8 19H10" />
             </svg>
           </button>
         </div>
