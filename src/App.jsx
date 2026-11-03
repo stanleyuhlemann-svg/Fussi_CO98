@@ -465,108 +465,11 @@ export default function App() {
     }
   }
 
-  async function handleRefresh() {
-    if (busy) return
-    setBusy(true)
-    resetFeedback()
-
-    try {
-      const [profileResult, daysResult, profilesResult, rankingProfilesResult, resultsResult, eventsResult, responsesResult] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-        supabase.from('match_days').select('*').order('match_date').order('start_time'),
-        supabase.from('profiles').select('id, display_name, elo').order('display_name'),
-        supabase.from('profiles').select('id, display_name, start_elo, elo'),
-        supabase.from('player_results').select('id, player_id, result, result_points, elo_before, elo_after').order('id', { ascending: true }),
-        supabase.from('events').select('*').order('start_date', { ascending: true }),
-        supabase.from('event_responses').select('*'),
-      ])
-
-      const firstError =
-        profileResult.error ||
-        daysResult.error ||
-        profilesResult.error ||
-        rankingProfilesResult.error ||
-        resultsResult.error ||
-        eventsResult.error ||
-        responsesResult.error
-
-      if (firstError) throw firstError
-
-      const freshDays = daysResult.data || []
-      const today = getLocalDateString()
-      const freshUpcomingDays = freshDays.filter((day) => day.match_date >= today)
-      const freshNextDay = freshUpcomingDays.find((day) => day.status !== 'finished') || freshUpcomingDays[0] || null
-      // Beim manuellen Aktualisieren immer auf den naechsten moeglichen
-      // Spieltag springen. Vergangene Spieltage bleiben im Reiter
-      // "Spieltag auslosen" weiterhin manuell auswaehlbar.
-      const dayIdToLoad = freshNextDay?.id ?? null
-
-      setProfile(profileResult.data)
-      setMatchDays(freshDays)
-      setAllProfiles(profilesResult.data || [])
-      setEvents(eventsResult.data || [])
-      setEventResponses(responsesResult.data || [])
-
-      const rankingMap = new Map((rankingProfilesResult.data || []).map((player) => [player.id, {
-        ...player,
-        start_elo: Number(player.start_elo ?? player.elo ?? 1000),
-        elo: Number(player.elo ?? player.start_elo ?? 1000),
-        games: 0,
-        wins: 0,
-        draws: 0,
-        losses: 0,
-        points: 0,
-        last_elo_change: null,
-        last_result_id: null,
-      }]))
-
-      for (const result of resultsResult.data || []) {
-        const player = rankingMap.get(result.player_id)
-        if (!player) continue
-
-        player.games += 1
-        if (result.result === 'win') {
-          player.wins += 1
-          player.points += 3
-        }
-        if (result.result === 'draw') {
-          player.draws += 1
-          player.points += 1
-        }
-        if (result.result === 'loss') player.losses += 1
-
-        if (
-          result.elo_before !== null &&
-          result.elo_after !== null &&
-          (player.last_result_id === null || Number(result.id) > Number(player.last_result_id))
-        ) {
-          player.last_result_id = result.id
-          player.last_elo_change = Number(result.elo_after) - Number(result.elo_before)
-        }
-      }
-
-      setRanking([...rankingMap.values()].map((player) => ({
-        ...player,
-        elo_total: player.elo - player.start_elo,
-      })).sort((a, b) => b.points - a.points || b.elo - a.elo))
-
-      if (dayIdToLoad) {
-        setSelectedDayId(dayIdToLoad)
-        await loadDay(dayIdToLoad)
-      } else {
-        setSelectedDayId(null)
-        setRegistrations([])
-        setGuests([])
-        setRound(null)
-        setTeamMembers([])
-      }
-
-      setMessage('Aktuelle Daten wurden geladen.')
-    } catch (refreshError) {
-      setError(refreshError?.message || 'Aktualisieren fehlgeschlagen.')
-    } finally {
-      setBusy(false)
-    }
+  function handleRefresh() {
+    // Bewusst wie der normale Browser-Refresh: komplette App neu laden.
+    // Dadurch werden Session, Spieltage, Anmeldungen, Torwartstatus,
+    // Auslosung, Ranking/ELO und Events aus Supabase neu eingelesen.
+    window.location.reload()
   }
 
   function openSignupTab() {
