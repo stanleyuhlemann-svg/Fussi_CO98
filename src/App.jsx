@@ -882,7 +882,7 @@ export default function App() {
               <div className="ranking-detail-grid">
                 <div><span>Spiele</span><strong>{selectedPlayer.games}</strong></div>
                 <div><span>Punkte</span><strong>{selectedPlayer.points}</strong></div>
-                <div><span>ELO</span><strong>{selectedPlayer.elo}</strong></div>
+                <div><span>ELO aktuell</span><strong>{selectedPlayer.elo}</strong></div>
                 <div><span>Siege</span><strong>{selectedPlayer.wins}</strong></div>
                 <div><span>Unentschieden</span><strong>{selectedPlayer.draws}</strong></div>
                 <div><span>Niederlagen</span><strong>{selectedPlayer.losses}</strong></div>
@@ -891,7 +891,6 @@ export default function App() {
                 <h3 style={{ marginBottom: 10 }}>ELO-Entwicklung</h3>
                 <div className="ranking-detail-grid">
                   <div><span>Start-ELO</span><strong>{selectedPlayer.start_elo}</strong></div>
-                  <div><span>ELO aktuell</span><strong>{selectedPlayer.elo}</strong></div>
                   <div>
                     <span>ELO Total</span>
                     <strong style={{ color: selectedPlayer.elo_total > 0 ? '#55e9b3' : selectedPlayer.elo_total < 0 ? '#ff8fa6' : '#9ff1d2' }}>
