@@ -459,8 +459,10 @@ export default function App() {
       const today = getLocalDateString()
       const freshUpcomingDays = freshDays.filter((day) => day.match_date >= today)
       const freshNextDay = freshUpcomingDays.find((day) => day.status !== 'finished') || freshUpcomingDays[0] || null
-      const selectedStillExists = freshDays.some((day) => String(day.id) === String(selectedDayId))
-      const dayIdToLoad = selectedStillExists ? selectedDayId : freshNextDay?.id ?? null
+      // Beim manuellen Aktualisieren immer auf den naechsten moeglichen
+      // Spieltag springen. Vergangene Spieltage bleiben im Reiter
+      // "Spieltag auslosen" weiterhin manuell auswaehlbar.
+      const dayIdToLoad = freshNextDay?.id ?? null
 
       setProfile(profileResult.data)
       setMatchDays(freshDays)
