@@ -70,18 +70,47 @@ function buildBalancedTeams(participants, teamSize) {
   let candidates = combinations(randomized, teamACount)
   if (candidates.length > 100000) candidates = shuffle(candidates).slice(0, 100000)
 
+  const goalkeepers = randomized.filter((player) => player.goalkeeper_only)
+  const teamBCount = randomized.length - teamACount
+  const backupCountA = Math.max(0, teamACount - teamSize)
+  const backupCountB = Math.max(0, teamBCount - teamSize)
   let best = null
+
   for (const teamA of candidates) {
     const ids = new Set(teamA.map((player) => player.key))
     const teamB = randomized.filter((player) => !ids.has(player.key))
+    const goalkeepersA = teamA.filter((player) => player.goalkeeper_only).length
+    const goalkeepersB = teamB.filter((player) => player.goalkeeper_only).length
+
+    if (goalkeepers.length === 2 && (goalkeepersA !== 1 || goalkeepersB !== 1)) continue
+    if (goalkeepers.length === 1) {
+      if (backupCountA > backupCountB && goalkeepersA !== 1) continue
+      if (backupCountB > backupCountA && goalkeepersB !== 1) continue
+    }
+
     const difference = Math.abs(averageElo(teamA) - averageElo(teamB))
     if (!best || difference < best.difference) best = { teamA, teamB, difference }
   }
+
   if (!best) return { teamA: [], teamB: [] }
-  return {
-    teamA: shuffle(best.teamA).map((player, index) => ({ ...player, is_backup: index >= teamSize })),
-    teamB: shuffle(best.teamB).map((player, index) => ({ ...player, is_backup: index >= teamSize })),
+
+  function markBackups(team) {
+    const mixed = shuffle(team)
+    const goalkeeperPlayers = mixed.filter((player) => player.goalkeeper_only)
+    const regularPlayers = mixed.filter((player) => !player.goalkeeper_only)
+    const backupCount = Math.max(0, mixed.length - teamSize)
+    const regularWithStatus = regularPlayers.map((player, index) => ({
+      ...player,
+      is_backup: index >= regularPlayers.length - backupCount,
+    }))
+
+    return shuffle([
+      ...goalkeeperPlayers.map((player) => ({ ...player, is_backup: false })),
+      ...regularWithStatus,
+    ])
   }
+
+  return { teamA: markBackups(best.teamA), teamB: markBackups(best.teamB) }
 }
 
 export default function App() {
@@ -147,7 +176,9 @@ export default function App() {
   const participants = useMemo(() => [
     ...registeredPlayers.map((item) => ({
       key: `player-${item.player_id}`, type: 'player', id: item.player_id,
-      display_name: item.profiles?.display_name || 'Spieler', elo: Number(item.profiles?.elo || 1000),
+      display_name: item.profiles?.display_name || 'Spieler',
+      elo: Number(item.profiles?.elo || 1000),
+      goalkeeper_only: Boolean(item.goalkeeper_only),
     })),
     ...guests.map((guest) => ({
       key: `guest-${guest.id}`, type: 'guest', id: guest.id,
@@ -161,6 +192,8 @@ export default function App() {
   )
 
   const isRegistered = ownRegistration?.status === 'registered'
+  const goalkeeperCount = registeredPlayers.filter((item) => item.goalkeeper_only).length
+  const isGoalkeeperOnly = Boolean(ownRegistration?.goalkeeper_only)
   const teamA = teamMembers.filter((member) => member.team === 'A')
   const teamB = teamMembers.filter((member) => member.team === 'B')
 
@@ -263,6 +296,10 @@ export default function App() {
       display_name: member.profiles?.display_name || member.guest_players?.display_name || 'Teilnehmer',
       elo: Number(member.elo_before || member.profiles?.elo || member.guest_players?.elo || 1000),
       is_guest: Boolean(member.guest_player_id),
+      goalkeeper_only: Boolean(
+        member.player_id &&
+        (registrationsResult.data || []).find((item) => item.player_id === member.player_id)?.goalkeeper_only
+      ),
     })))
     setTeamSize(currentRound.team_size)
     setGoalsA(currentRound.goals_a == null ? '' : String(currentRound.goals_a))
@@ -551,7 +588,7 @@ export default function App() {
     if (!selectedDay) return
     setBusy(true); resetFeedback()
     const { error: saveError } = await supabase.from('registrations').upsert({
-      match_day_id: selectedDay.id, player_id: session.user.id, status: 'registered',
+      match_day_id: selectedDay.id, player_id: session.user.id, status: 'registered', goalkeeper_only: false,
     }, { onConflict: 'match_day_id,player_id' })
     if (saveError) setError(saveError.message)
     else { setMessage('Sie sind für diesen Spieltag angemeldet.'); await loadDay(selectedDay.id) }
@@ -564,6 +601,26 @@ export default function App() {
       .eq('match_day_id', selectedDay.id).eq('player_id', session.user.id)
     if (saveError) setError(saveError.message)
     else { setMessage('Sie sind für diesen Spieltag abgemeldet.'); await loadDay(selectedDay.id) }
+    setBusy(false)
+  }
+
+  async function toggleGoalkeeperOnly() {
+    if (!selectedDay || !isRegistered || round) return
+    setBusy(true)
+    resetFeedback()
+    const nextValue = !isGoalkeeperOnly
+
+    const { error: saveError } = await supabase
+      .from('registrations')
+      .update({ goalkeeper_only: nextValue })
+      .eq('match_day_id', selectedDay.id)
+      .eq('player_id', session.user.id)
+
+    if (saveError) setError(saveError.message)
+    else {
+      setMessage(nextValue ? 'Sie sind für diesen Spieltag als Nur Torwart markiert.' : 'Nur-Torwart-Status wurde entfernt.')
+      await loadDay(selectedDay.id)
+    }
     setBusy(false)
   }
 
@@ -636,10 +693,17 @@ export default function App() {
     resetFeedback()
     if (!selectedDay) return setError('Bitte zuerst einen Spieltag auswählen.')
     if (round) return setError('Für diesen Spieltag existiert bereits eine Auslosung.')
+    const goalkeeperOnlyPlayers = participants.filter((player) => player.goalkeeper_only)
+    if (goalkeeperOnlyPlayers.length > 2) return setError('Maximal 2 Nur-Torhüter pro Spieltag sind erlaubt.')
     const needed = teamSize * 2
     if (participants.length < needed) return setError(`Für ${teamSize} vs. ${teamSize} werden mindestens ${needed} Teilnehmer benötigt.`)
     setBusy(true)
     const balanced = buildBalancedTeams(participants, teamSize)
+    if (!balanced.teamA.length || !balanced.teamB.length) {
+      setError('Mit der aktuellen Torwartregel konnte keine gültige Teamaufteilung erstellt werden.')
+      setBusy(false)
+      return
+    }
     const { data: roundData, error: roundError } = await supabase.from('rounds').insert({
       match_day_id: selectedDay.id, team_size: teamSize, status: 'drawn',
     }).select().single()
@@ -816,7 +880,20 @@ export default function App() {
               <div style={{ marginTop: 18 }}>
                 {!isRegistered
                   ? <button className="primary-button" disabled={busy} onClick={registerForDay}>✅ Ich bin dabei</button>
-                  : <button className="secondary-button" disabled={busy} onClick={cancelRegistration}>Abmelden</button>}
+                  : <>
+                    <button className="secondary-button" disabled={busy} onClick={cancelRegistration}>Abmelden</button>
+                    <button
+                      type="button"
+                      className={isGoalkeeperOnly ? 'primary-button' : 'secondary-button'}
+                      disabled={busy || Boolean(round) || (!isGoalkeeperOnly && goalkeeperCount >= 2)}
+                      onClick={toggleGoalkeeperOnly}
+                      style={{ marginTop: 10 }}
+                    >
+                      {isGoalkeeperOnly ? '☑️ 🧤 Nur Torwart' : '☐ 🧤 Nur Torwart'}
+                    </button>
+                    {!isGoalkeeperOnly && goalkeeperCount >= 2 && <p style={{ marginTop: 8 }}>Bereits 2 Nur-Torhüter angemeldet.</p>}
+                    {round && <p style={{ marginTop: 8 }}>Nach der Auslosung kann der Torwartstatus nicht mehr geändert werden.</p>}
+                  </>}
               </div>
             </div>}
           </section>
@@ -825,7 +902,7 @@ export default function App() {
             <h2>Angemeldete Teilnehmer ({participants.length})</h2>
             {participants.length === 0 ? <p>Noch niemand angemeldet.</p> : participants.map((participant, index) => (
               <div key={participant.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: 11, borderRadius: 10, background: '#f5f5f5', marginBottom: 8 }}>
-                <strong>{index + 1}. {participant.display_name}{participant.type === 'guest' ? ` · Gast · ELO ${participant.elo}` : ''}</strong>
+                <strong>{index + 1}. {participant.display_name}{participant.goalkeeper_only ? ' · 🧤 Nur Torwart' : ''}{participant.type === 'guest' ? ` · Gast · ELO ${participant.elo}` : ''}</strong>
                 {participant.type === 'guest'
                   ? <button disabled={busy || Boolean(round)} onClick={() => removeGuest(guests.find((guest) => guest.id === participant.id))}>Gast entfernen</button>
                   : profile?.is_admin
@@ -1112,7 +1189,7 @@ function MatchDaySelect({ matchDays, selectedDayId, setSelectedDayId, label = 'S
 function TeamCard({ title, members }) {
   return <section className="content-card"><h2>{title}</h2><p>Ø ELO: {averageElo(members)}</p>
     {members.map((member, index) => <div key={member.id} style={{ padding: '9px 0', borderBottom: '1px solid #263c54' }}>
-      <strong>{index + 1}. {member.display_name}</strong>{member.is_guest && <span> · Gast · ELO {member.elo}</span>}{member.is_backup && <span> · Backup</span>}
+      <strong>{index + 1}. {member.display_name}</strong>{member.goalkeeper_only && <span> · 🧤 Nur Torwart</span>}{member.is_guest && <span> · Gast · ELO {member.elo}</span>}{member.is_backup && <span> · Backup</span>}
     </div>)}
   </section>
 }
