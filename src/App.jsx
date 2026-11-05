@@ -143,6 +143,8 @@ export default function App() {
   const [guestElo, setGuestElo] = useState('1000')
   const [goalsA, setGoalsA] = useState('')
   const [goalsB, setGoalsB] = useState('')
+  const [adminPlayerId, setAdminPlayerId] = useState('')
+  const [adminGoalkeeperOnly, setAdminGoalkeeperOnly] = useState(false)
 
   const [events, setEvents] = useState([])
   const [eventResponses, setEventResponses] = useState([])
@@ -167,6 +169,16 @@ export default function App() {
     [signupMatchDays]
   )
 
+  const adminSignupCandidates = useMemo(() => {
+    const registeredIds = new Set(
+      registrations
+        .filter((item) => item.status === 'registered')
+        .map((item) => item.player_id)
+    )
+
+    return allProfiles.filter((player) => !registeredIds.has(player.id))
+  }, [allProfiles, registrations])
+
   const registeredPlayers = useMemo(
     () => registrations.filter((item) => item.status === 'registered').sort((a, b) =>
       String(a.profiles?.display_name || '').localeCompare(String(b.profiles?.display_name || ''), 'de')),
@@ -176,8 +188,7 @@ export default function App() {
   const participants = useMemo(() => [
     ...registeredPlayers.map((item) => ({
       key: `player-${item.player_id}`, type: 'player', id: item.player_id,
-      display_name: item.profiles?.display_name || 'Spieler',
-      elo: Number(item.profiles?.elo || 1000),
+      display_name: item.profiles?.display_name || 'Spieler', elo: Number(item.profiles?.elo || 1000),
       goalkeeper_only: Boolean(item.goalkeeper_only),
     })),
     ...guests.map((guest) => ({
@@ -466,9 +477,6 @@ export default function App() {
   }
 
   function handleRefresh() {
-    // Bewusst wie der normale Browser-Refresh: komplette App neu laden.
-    // Dadurch werden Session, Spieltage, Anmeldungen, Torwartstatus,
-    // Auslosung, Ranking/ELO und Events aus Supabase neu eingelesen.
     window.location.reload()
   }
 
@@ -522,6 +530,32 @@ export default function App() {
     if (saveError) setError(saveError.message)
     else {
       setMessage(nextValue ? 'Sie sind für diesen Spieltag als Nur Torwart markiert.' : 'Nur-Torwart-Status wurde entfernt.')
+      await loadDay(selectedDay.id)
+    }
+    setBusy(false)
+  }
+
+  async function adminRegisterPlayer(event) {
+    event.preventDefault()
+    resetFeedback()
+    if (!profile?.is_admin || !selectedDay || !adminPlayerId) return
+    if (round) return setError('Nach der Auslosung können keine Spieler mehr nachgemeldet werden.')
+    if (adminGoalkeeperOnly && goalkeeperCount >= 2) return setError('Für diesen Spieltag sind bereits 2 Nur-Torhüter angemeldet.')
+
+    setBusy(true)
+    const selectedProfile = allProfiles.find((player) => String(player.id) === String(adminPlayerId))
+    const { error: saveError } = await supabase.from('registrations').upsert({
+      match_day_id: selectedDay.id,
+      player_id: adminPlayerId,
+      status: 'registered',
+      goalkeeper_only: adminGoalkeeperOnly,
+    }, { onConflict: 'match_day_id,player_id' })
+
+    if (saveError) setError(saveError.message)
+    else {
+      setMessage(`${selectedProfile?.display_name || 'Spieler'} wurde nachgemeldet${adminGoalkeeperOnly ? ' · Nur Torwart' : ''}.`)
+      setAdminPlayerId('')
+      setAdminGoalkeeperOnly(false)
       await loadDay(selectedDay.id)
     }
     setBusy(false)
@@ -795,7 +829,6 @@ export default function App() {
                       {isGoalkeeperOnly ? '☑️ 🧤 Nur Torwart' : '☐ 🧤 Nur Torwart'}
                     </button>
                     {!isGoalkeeperOnly && goalkeeperCount >= 2 && <p style={{ marginTop: 8 }}>Bereits 2 Nur-Torhüter angemeldet.</p>}
-                    {round && <p style={{ marginTop: 8 }}>Nach der Auslosung kann der Torwartstatus nicht mehr geändert werden.</p>}
                   </>}
               </div>
             </div>}
@@ -813,6 +846,30 @@ export default function App() {
                     : null}
               </div>
             ))}
+          </section>}
+
+          {profile?.is_admin && selectedDay && <section className="content-card">
+            <h2>⚙️ Spieler nachmelden</h2>
+            {round ? <p>Nach der Auslosung können keine Spieler mehr nachgemeldet werden.</p> : <form onSubmit={adminRegisterPlayer}>
+              <label>Bestehender Spieler
+                <select value={adminPlayerId} onChange={(event) => setAdminPlayerId(event.target.value)} required>
+                  <option value="">Spieler auswählen</option>
+                  {adminSignupCandidates.map((player) => <option key={player.id} value={player.id}>{player.display_name}</option>)}
+                </select>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={adminGoalkeeperOnly}
+                  disabled={!adminGoalkeeperOnly && goalkeeperCount >= 2}
+                  onChange={(event) => setAdminGoalkeeperOnly(event.target.checked)}
+                  style={{ width: 20, height: 20, margin: 0 }}
+                />
+                🧤 Nur Torwart
+              </label>
+              {!adminGoalkeeperOnly && goalkeeperCount >= 2 && <p>Bereits 2 Nur-Torhüter angemeldet.</p>}
+              <button className="primary-button" disabled={busy || !adminPlayerId}>+ Spieler nachmelden</button>
+            </form>}
           </section>}
 
           {selectedDay && <section className="content-card">
