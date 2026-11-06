@@ -484,31 +484,15 @@ export default function App() {
     if (options.length < 2) return setError('Bitte mindestens zwei Optionen eingeben, jeweils eine pro Zeile.')
 
     setBusy(true)
-    const { data: poll, error: pollError } = await supabase.from('event_polls').insert({
-      question: pollQuestion.trim(),
-      description: pollDescription.trim() || null,
-      allow_multiple: pollAllowMultiple,
-      is_open: true,
-      created_by: session.user.id,
-    }).select().single()
+    const { error: pollError } = await supabase.rpc('create_event_poll', {
+      p_question: pollQuestion.trim(),
+      p_description: pollDescription.trim(),
+      p_allow_multiple: pollAllowMultiple,
+      p_options: options,
+    })
 
     if (pollError) {
       setError(pollError.message)
-      setBusy(false)
-      return
-    }
-
-    const { error: optionsError } = await supabase.from('event_poll_options').insert(
-      options.map((optionText, index) => ({
-        poll_id: poll.id,
-        option_text: optionText,
-        sort_order: index,
-      }))
-    )
-
-    if (optionsError) {
-      await supabase.from('event_polls').delete().eq('id', poll.id)
-      setError(optionsError.message)
     } else {
       setPollQuestion('')
       setPollDescription('')
@@ -1209,10 +1193,10 @@ export default function App() {
             ))}
           </section>
 
-          <section className="content-card">
+          {polls.length > 0 && <section className="content-card" style={{ gridColumn: '1 / -1' }}>
             <h2>📊 Terminabstimmungen</h2>
             <p>Termine auswählen und die eigene Auswahl später jederzeit ändern.</p>
-            {polls.length === 0 ? <p>Noch keine Terminabstimmung angelegt.</p> : polls.map((poll) => {
+            {polls.map((poll) => {
               const options = pollOptions.filter((option) => option.poll_id === poll.id)
               const selectedIds = pollSelections[poll.id] || []
               const totalVoters = new Set(pollVotes.filter((vote) => vote.poll_id === poll.id).map((vote) => vote.player_id)).size
@@ -1253,9 +1237,9 @@ export default function App() {
                 {profile?.is_admin && <button type="button" style={{ marginTop: 10 }} disabled={busy} onClick={() => deletePoll(poll)}>🗑️ Abstimmung löschen</button>}
               </div>
             })}
-          </section>
+          </section>}
 
-          {profile?.is_admin && <section className="content-card">
+          {profile?.is_admin && <section className="content-card" style={{ gridColumn: '1 / -1' }}>
             <h2>⚙️ Neue Terminabstimmung</h2>
             <form onSubmit={createPoll}>
               <label>Frage
@@ -1275,7 +1259,7 @@ export default function App() {
             </form>
           </section>}
 
-          {profile?.is_admin && <section className="content-card">
+          {profile?.is_admin && <section className="content-card" style={{ gridColumn: '1 / -1' }}>
             <h2>⚙️ Admin · Event anlegen</h2>
             <form onSubmit={createEvent}>
               <label>Event<input value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} placeholder="z. B. Weihnachtsfeier" required /></label>
