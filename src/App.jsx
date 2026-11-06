@@ -390,24 +390,22 @@ export default function App() {
   }
 
   async function loadPolls() {
-    const [pollsResult, optionsResult, votesResult] = await Promise.all([
-      supabase.from('event_polls').select('*').order('created_at', { ascending: false }),
-      supabase.from('event_poll_options').select('*').order('sort_order').order('id'),
-      supabase.from('event_poll_votes').select('*'),
-    ])
+    const { data, error: pollsError } = await supabase.rpc('get_event_poll_data')
 
-    const firstError = pollsResult.error || optionsResult.error || votesResult.error
-    if (firstError) return setError(firstError.message)
+    if (pollsError) {
+      setError(pollsError.message)
+      return
+    }
 
-    const nextPolls = pollsResult.data || []
-    const nextOptions = optionsResult.data || []
-    const nextVotes = votesResult.data || []
+    const nextPolls = Array.isArray(data?.polls) ? data.polls : []
+    const nextOptions = Array.isArray(data?.options) ? data.options : []
+    const nextVotes = Array.isArray(data?.votes) ? data.votes : []
     const ownSelections = {}
 
     for (const poll of nextPolls) {
       ownSelections[poll.id] = nextVotes
-        .filter((vote) => vote.poll_id === poll.id && vote.player_id === session.user.id)
-        .map((vote) => vote.option_id)
+        .filter((vote) => Number(vote.poll_id) === Number(poll.id) && vote.player_id === session.user.id)
+        .map((vote) => Number(vote.option_id))
     }
 
     setPolls(nextPolls)
@@ -1197,9 +1195,9 @@ export default function App() {
             <h2>📊 Terminabstimmungen</h2>
             <p>Termine auswählen und die eigene Auswahl später jederzeit ändern.</p>
             {polls.map((poll) => {
-              const options = pollOptions.filter((option) => option.poll_id === poll.id)
+              const options = pollOptions.filter((option) => Number(option.poll_id) === Number(poll.id))
               const selectedIds = pollSelections[poll.id] || []
-              const totalVoters = new Set(pollVotes.filter((vote) => vote.poll_id === poll.id).map((vote) => vote.player_id)).size
+              const totalVoters = new Set(pollVotes.filter((vote) => Number(vote.poll_id) === Number(poll.id)).map((vote) => vote.player_id)).size
 
               return <div key={poll.id} style={{ marginTop: 14, padding: 16, border: '1px solid #36506d', borderRadius: 16, background: '#081728' }}>
                 <h3 style={{ marginTop: 0 }}>{poll.question}</h3>
@@ -1208,9 +1206,9 @@ export default function App() {
 
                 <div style={{ display: 'grid', gap: 10 }}>
                   {options.map((option) => {
-                    const optionVotes = pollVotes.filter((vote) => vote.option_id === option.id)
+                    const optionVotes = pollVotes.filter((vote) => Number(vote.option_id) === Number(option.id))
                     const voters = allProfiles.filter((player) => optionVotes.some((vote) => vote.player_id === player.id))
-                    const selected = selectedIds.includes(option.id)
+                    const selected = selectedIds.includes(Number(option.id))
 
                     return <div key={option.id} style={{ padding: 12, borderRadius: 12, background: '#102034', border: selected ? '1px solid #55e9b3' : '1px solid #263c54' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}>
@@ -1219,7 +1217,7 @@ export default function App() {
                           name={`poll-${poll.id}`}
                           checked={selected}
                           disabled={!poll.is_open || busy}
-                          onChange={() => togglePollOption(poll, option.id)}
+                          onChange={() => togglePollOption(poll, Number(option.id))}
                           style={{ width: 20, height: 20, margin: 0 }}
                         />
                         <strong style={{ flex: 1 }}>{option.option_text}</strong>
