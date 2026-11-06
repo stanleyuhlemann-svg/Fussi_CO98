@@ -486,15 +486,22 @@ export default function App() {
 
   async function deletePoll(poll) {
     if (!profile?.is_admin) return
-    if (!window.confirm(`Terminabstimmung „${poll.question}“ wirklich löschen?`)) return
+    if (!window.confirm(`Event-Abstimmung „${poll.question}“ wirklich löschen?`)) return
+
     setBusy(true)
     resetFeedback()
-    const { error: deleteError } = await supabase.from('event_polls').delete().eq('id', poll.id)
-    if (deleteError) setError(deleteError.message)
-    else {
+
+    const { error: deleteError } = await supabase.rpc('delete_event_poll', {
+      p_poll_id: Number(poll.id),
+    })
+
+    if (deleteError) {
+      setError(deleteError.message)
+    } else {
       setMessage('Event-Abstimmung wurde gelöscht.')
       await loadPolls()
     }
+
     setBusy(false)
   }
 
@@ -1175,60 +1182,64 @@ export default function App() {
 
           {polls.length > 0 && <section className="content-card" style={{ gridColumn: '1 / -1' }}>
             <h2>📊 Event-Abstimmungen</h2>
-            <p>Optionen auswählen und die eigene Auswahl später jederzeit ändern.</p>
             {polls.map((poll) => {
               const options = pollOptions.filter((option) => Number(option.poll_id) === Number(poll.id))
               const selectedIds = pollSelections[poll.id] || []
               const totalVoters = new Set(pollVotes.filter((vote) => Number(vote.poll_id) === Number(poll.id)).map((vote) => vote.player_id)).size
 
-              return <div key={poll.id} style={{ marginTop: 10, padding: 12, border: '1px solid #36506d', borderRadius: 14, background: '#081728' }}>
-                <h3 style={{ margin: '0 0 4px', fontSize: 17 }}>{poll.question}</h3>
+              return <div key={poll.id} style={{ marginTop: 10, padding: '10px 12px 11px', borderTop: '1px solid #36506d', background: 'transparent' }}>
+                <h3 style={{ margin: '0 0 3px', fontSize: 18, lineHeight: 1.2 }}>{poll.question}</h3>
                 {poll.description && <p style={{ margin: '0 0 6px', fontSize: 13 }}>{poll.description}</p>}
-                <p style={{ margin: '0 0 10px', fontSize: 12, color: '#9bc5e8' }}>{poll.allow_multiple ? 'Mehrfachauswahl möglich' : 'Eine Auswahl möglich'} · {totalVoters} abgestimmt</p>
+                <p style={{ margin: '0 0 8px', fontSize: 11.5, color: '#9bc5e8' }}>{poll.allow_multiple ? 'Mehrfachauswahl' : 'Einfachauswahl'} · {totalVoters} abgestimmt</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 7 }}>
+                <div style={{ display: 'grid', gap: 3 }}>
                   {options.map((option) => {
                     const optionVotes = pollVotes.filter((vote) => Number(vote.option_id) === Number(option.id))
                     const voters = allProfiles.filter((player) => optionVotes.some((vote) => vote.player_id === player.id))
                     const selected = selectedIds.includes(Number(option.id))
+                    const maxVotes = Math.max(1, ...options.map((item) => pollVotes.filter((vote) => Number(vote.option_id) === Number(item.id)).length))
+                    const votePercent = Math.round((optionVotes.length / maxVotes) * 100)
 
                     return <div
                       key={option.id}
                       onClick={() => !busy && poll.is_open && togglePollOption(poll, Number(option.id))}
                       style={{
-                        minHeight: 58,
-                        padding: '8px 9px',
-                        borderRadius: 10,
-                        background: selected ? 'rgba(85, 233, 179, 0.12)' : '#102034',
-                        border: selected ? '2px solid #55e9b3' : '1px solid #263c54',
+                        padding: '8px 5px 7px',
+                        borderRadius: 9,
+                        background: selected ? 'rgba(85, 233, 179, 0.08)' : 'transparent',
                         cursor: poll.is_open && !busy ? 'pointer' : 'default',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
+                        borderBottom: '1px solid rgba(54, 80, 109, 0.45)',
                       }}
                     >
-                      <label style={{ display: 'grid', gridTemplateColumns: '18px 1fr auto', alignItems: 'center', gap: 7, margin: 0, cursor: 'inherit' }} onClick={(event) => event.stopPropagation()}>
-                        <input
-                          type={poll.allow_multiple ? 'checkbox' : 'radio'}
-                          name={`poll-${poll.id}`}
-                          checked={selected}
-                          disabled={!poll.is_open || busy}
-                          onChange={() => togglePollOption(poll, Number(option.id))}
-                          style={{ width: 16, height: 16, margin: 0 }}
-                        />
-                        <strong style={{ minWidth: 0, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis' }}>{option.option_text}</strong>
-                        <span style={{ minWidth: 22, height: 22, display: 'grid', placeItems: 'center', borderRadius: 999, fontSize: 12, fontWeight: 900, color: optionVotes.length ? '#052017' : '#9bc5e8', background: optionVotes.length ? '#55e9b3' : '#203754' }}>{optionVotes.length}</span>
-                      </label>
-                      {voters.length > 0 && <p style={{ margin: '5px 0 0 25px', fontSize: 11, lineHeight: 1.25, color: '#9bc5e8' }}>{voters.map((player) => player.display_name).join(', ')}</p>}
+                      <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr auto', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                          width: 25,
+                          height: 25,
+                          borderRadius: '50%',
+                          display: 'grid',
+                          placeItems: 'center',
+                          border: selected ? '2px solid #55e9b3' : '2px solid #6f839a',
+                          background: selected ? '#29b980' : 'transparent',
+                          color: '#ffffff',
+                          fontSize: 16,
+                          fontWeight: 900,
+                        }}>{selected ? '✓' : ''}</span>
+                        <strong style={{ fontSize: 14, lineHeight: 1.2 }}>{option.option_text}</strong>
+                        <span style={{ fontSize: 13, fontWeight: 900, color: optionVotes.length ? '#55e9b3' : '#9bc5e8' }}>{optionVotes.length}</span>
+                      </div>
+                      <div style={{ margin: '5px 0 0 36px', height: 5, borderRadius: 999, overflow: 'hidden', background: '#203754' }}>
+                        <div style={{ width: `${votePercent}%`, height: '100%', borderRadius: 999, background: '#29b980', transition: 'width 0.18s ease' }} />
+                      </div>
+                      {voters.length > 0 && <p style={{ margin: '4px 0 0 36px', fontSize: 10.5, lineHeight: 1.2, color: '#9bc5e8' }}>{voters.map((player) => player.display_name).join(', ')}</p>}
                     </div>
                   })}
                 </div>
 
-                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  <button className="primary-button" style={{ width: 'auto', minWidth: 140, minHeight: 38, padding: '8px 14px' }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
+                <div style={{ marginTop: 9, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  <button className="primary-button" style={{ width: 'auto', minWidth: 126, minHeight: 34, padding: '7px 12px', borderRadius: 999, fontSize: 13 }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
                     Auswahl speichern
                   </button>
-                  {profile?.is_admin && <button type="button" style={{ width: 'auto', minHeight: 38, padding: '8px 12px' }} disabled={busy} onClick={() => deletePoll(poll)}>🗑️ Löschen</button>}
+                  {profile?.is_admin && <button type="button" title="Event-Abstimmung löschen" style={{ width: 'auto', minHeight: 34, padding: '7px 10px', borderRadius: 999, fontSize: 13 }} disabled={busy} onClick={() => deletePoll(poll)}>🗑️ Löschen</button>}
                 </div>
                 {!poll.is_open && <p>Diese Abstimmung ist geschlossen.</p>}
               </div>
