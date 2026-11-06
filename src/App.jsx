@@ -432,39 +432,21 @@ export default function App() {
     if (!poll.is_open) return
     setBusy(true)
     resetFeedback()
-    const selectedOptionIds = pollSelections[poll.id] || []
 
-    const { error: deleteError } = await supabase
-      .from('event_poll_votes')
-      .delete()
-      .eq('poll_id', poll.id)
-      .eq('player_id', session.user.id)
+    const selectedOptionIds = (pollSelections[poll.id] || []).map((id) => Number(id))
 
-    if (deleteError) {
-      setError(deleteError.message)
-      setBusy(false)
-      return
+    const { error: voteError } = await supabase.rpc('save_event_poll_vote', {
+      p_poll_id: Number(poll.id),
+      p_option_ids: selectedOptionIds,
+    })
+
+    if (voteError) {
+      setError(voteError.message)
+    } else {
+      setMessage('Ihre Auswahl wurde gespeichert.')
+      await loadPolls()
     }
 
-    if (selectedOptionIds.length) {
-      const { error: insertError } = await supabase.from('event_poll_votes').insert(
-        selectedOptionIds.map((optionId) => ({
-          poll_id: poll.id,
-          option_id: optionId,
-          player_id: session.user.id,
-        }))
-      )
-
-      if (insertError) {
-        setError(insertError.message)
-        await loadPolls()
-        setBusy(false)
-        return
-      }
-    }
-
-    setMessage('Ihre Auswahl wurde gespeichert.')
-    await loadPolls()
     setBusy(false)
   }
 
@@ -1199,36 +1181,50 @@ export default function App() {
               const selectedIds = pollSelections[poll.id] || []
               const totalVoters = new Set(pollVotes.filter((vote) => Number(vote.poll_id) === Number(poll.id)).map((vote) => vote.player_id)).size
 
-              return <div key={poll.id} style={{ marginTop: 14, padding: 16, border: '1px solid #36506d', borderRadius: 16, background: '#081728' }}>
+              return <div key={poll.id} style={{ marginTop: 12, padding: 14, border: '1px solid #36506d', borderRadius: 16, background: '#081728' }}>
                 <h3 style={{ marginTop: 0 }}>{poll.question}</h3>
                 {poll.description && <p>{poll.description}</p>}
                 <p>{poll.allow_multiple ? 'Mehrfachauswahl möglich' : 'Eine Auswahl möglich'} · {totalVoters} abgestimmt</p>
 
-                <div style={{ display: 'grid', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
                   {options.map((option) => {
                     const optionVotes = pollVotes.filter((vote) => Number(vote.option_id) === Number(option.id))
                     const voters = allProfiles.filter((player) => optionVotes.some((vote) => vote.player_id === player.id))
                     const selected = selectedIds.includes(Number(option.id))
 
-                    return <div key={option.id} style={{ padding: 12, borderRadius: 12, background: '#102034', border: selected ? '1px solid #55e9b3' : '1px solid #263c54' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}>
+                    return <div
+                      key={option.id}
+                      onClick={() => !busy && poll.is_open && togglePollOption(poll, Number(option.id))}
+                      style={{
+                        minHeight: 82,
+                        padding: 12,
+                        borderRadius: 12,
+                        background: selected ? 'rgba(85, 233, 179, 0.12)' : '#102034',
+                        border: selected ? '2px solid #55e9b3' : '1px solid #263c54',
+                        cursor: poll.is_open && !busy ? 'pointer' : 'default',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 9, margin: 0, cursor: 'inherit' }} onClick={(event) => event.stopPropagation()}>
                         <input
                           type={poll.allow_multiple ? 'checkbox' : 'radio'}
                           name={`poll-${poll.id}`}
                           checked={selected}
                           disabled={!poll.is_open || busy}
                           onChange={() => togglePollOption(poll, Number(option.id))}
-                          style={{ width: 20, height: 20, margin: 0 }}
+                          style={{ width: 18, height: 18, margin: 0, flex: '0 0 auto' }}
                         />
-                        <strong style={{ flex: 1 }}>{option.option_text}</strong>
-                        <span>{optionVotes.length} Stimme{optionVotes.length === 1 ? '' : 'n'}</span>
+                        <strong style={{ flex: 1, fontSize: 15 }}>{option.option_text}</strong>
+                        <span style={{ fontWeight: 900, color: optionVotes.length ? '#55e9b3' : '#9bc5e8', whiteSpace: 'nowrap' }}>{optionVotes.length}</span>
                       </label>
-                      {voters.length > 0 && <p style={{ margin: '8px 0 0', fontSize: 13 }}>{voters.map((player) => player.display_name).join(', ')}</p>}
+                      {voters.length > 0 && <p style={{ margin: '8px 0 0 27px', fontSize: 12, color: '#9bc5e8' }}>{voters.map((player) => player.display_name).join(', ')}</p>}
                     </div>
                   })}
                 </div>
 
-                <button className="primary-button" style={{ marginTop: 14 }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
+                <button className="primary-button" style={{ marginTop: 12, width: 'auto', minWidth: 160 }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
                   Auswahl speichern
                 </button>
                 {!poll.is_open && <p>Diese Abstimmung ist geschlossen.</p>}
