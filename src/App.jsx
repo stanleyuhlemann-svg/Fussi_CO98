@@ -153,6 +153,14 @@ export default function App() {
   const [eventStartDate, setEventStartDate] = useState('')
   const [eventLocation, setEventLocation] = useState('')
   const [eventDescription, setEventDescription] = useState('')
+  const [polls, setPolls] = useState([])
+  const [pollOptions, setPollOptions] = useState([])
+  const [pollVotes, setPollVotes] = useState([])
+  const [pollSelections, setPollSelections] = useState({})
+  const [pollQuestion, setPollQuestion] = useState('')
+  const [pollDescription, setPollDescription] = useState('')
+  const [pollOptionLines, setPollOptionLines] = useState('')
+  const [pollAllowMultiple, setPollAllowMultiple] = useState(true)
 
   const selectedDay = useMemo(
     () => matchDays.find((day) => String(day.id) === String(selectedDayId)) || null,
@@ -276,7 +284,7 @@ export default function App() {
       setRound(null)
       setTeamMembers([])
     }
-    await Promise.all([loadRanking(), loadEvents()])
+    await Promise.all([loadRanking(), loadEvents(), loadPolls()])
     setLoading(false)
   }
 
@@ -379,6 +387,151 @@ export default function App() {
     if (firstError) return setError(firstError.message)
     setEvents(eventsResult.data || [])
     setEventResponses(responsesResult.data || [])
+  }
+
+  async function loadPolls() {
+    const [pollsResult, optionsResult, votesResult] = await Promise.all([
+      supabase.from('event_polls').select('*').order('created_at', { ascending: false }),
+      supabase.from('event_poll_options').select('*').order('sort_order').order('id'),
+      supabase.from('event_poll_votes').select('*'),
+    ])
+
+    const firstError = pollsResult.error || optionsResult.error || votesResult.error
+    if (firstError) return setError(firstError.message)
+
+    const nextPolls = pollsResult.data || []
+    const nextOptions = optionsResult.data || []
+    const nextVotes = votesResult.data || []
+    const ownSelections = {}
+
+    for (const poll of nextPolls) {
+      ownSelections[poll.id] = nextVotes
+        .filter((vote) => vote.poll_id === poll.id && vote.player_id === session.user.id)
+        .map((vote) => vote.option_id)
+    }
+
+    setPolls(nextPolls)
+    setPollOptions(nextOptions)
+    setPollVotes(nextVotes)
+    setPollSelections(ownSelections)
+  }
+
+  function togglePollOption(poll, optionId) {
+    if (!poll.is_open) return
+    setPollSelections((current) => {
+      const selected = current[poll.id] || []
+      const nextSelected = poll.allow_multiple
+        ? selected.includes(optionId)
+          ? selected.filter((id) => id !== optionId)
+          : [...selected, optionId]
+        : [optionId]
+
+      return { ...current, [poll.id]: nextSelected }
+    })
+  }
+
+  async function savePollVote(poll) {
+    if (!poll.is_open) return
+    setBusy(true)
+    resetFeedback()
+    const selectedOptionIds = pollSelections[poll.id] || []
+
+    const { error: deleteError } = await supabase
+      .from('event_poll_votes')
+      .delete()
+      .eq('poll_id', poll.id)
+      .eq('player_id', session.user.id)
+
+    if (deleteError) {
+      setError(deleteError.message)
+      setBusy(false)
+      return
+    }
+
+    if (selectedOptionIds.length) {
+      const { error: insertError } = await supabase.from('event_poll_votes').insert(
+        selectedOptionIds.map((optionId) => ({
+          poll_id: poll.id,
+          option_id: optionId,
+          player_id: session.user.id,
+        }))
+      )
+
+      if (insertError) {
+        setError(insertError.message)
+        await loadPolls()
+        setBusy(false)
+        return
+      }
+    }
+
+    setMessage('Ihre Auswahl wurde gespeichert.')
+    await loadPolls()
+    setBusy(false)
+  }
+
+  async function createPoll(event) {
+    event.preventDefault()
+    resetFeedback()
+    if (!profile?.is_admin) return
+
+    const options = pollOptionLines
+      .split('\n')
+      .map((option) => option.trim())
+      .filter(Boolean)
+
+    if (!pollQuestion.trim()) return setError('Bitte eine Frage eingeben.')
+    if (options.length < 2) return setError('Bitte mindestens zwei Optionen eingeben, jeweils eine pro Zeile.')
+
+    setBusy(true)
+    const { data: poll, error: pollError } = await supabase.from('event_polls').insert({
+      question: pollQuestion.trim(),
+      description: pollDescription.trim() || null,
+      allow_multiple: pollAllowMultiple,
+      is_open: true,
+      created_by: session.user.id,
+    }).select().single()
+
+    if (pollError) {
+      setError(pollError.message)
+      setBusy(false)
+      return
+    }
+
+    const { error: optionsError } = await supabase.from('event_poll_options').insert(
+      options.map((optionText, index) => ({
+        poll_id: poll.id,
+        option_text: optionText,
+        sort_order: index,
+      }))
+    )
+
+    if (optionsError) {
+      await supabase.from('event_polls').delete().eq('id', poll.id)
+      setError(optionsError.message)
+    } else {
+      setPollQuestion('')
+      setPollDescription('')
+      setPollOptionLines('')
+      setPollAllowMultiple(true)
+      setMessage('Terminabstimmung wurde erstellt.')
+      await loadPolls()
+    }
+    setBusy(false)
+  }
+
+  async function deletePoll(poll) {
+    if (!profile?.is_admin) return
+    if (!window.confirm(`Terminabstimmung „${poll.question}“ wirklich löschen?`)) return
+    setBusy(true)
+    resetFeedback()
+    const { error: deleteError } = await supabase.from('event_polls').delete().eq('id', poll.id)
+    if (deleteError) setError(deleteError.message)
+    else {
+      setMessage('Terminabstimmung wurde gelöscht.')
+      await loadPolls()
+    }
+    setBusy(false)
   }
 
   async function setEventResponse(eventId, status) {
@@ -1056,6 +1209,77 @@ export default function App() {
             ))}
           </section>
 
+          </section>
+
+          <section className="content-card">
+            <h2>📊 Terminabstimmungen</h2>
+            <p>Termine auswählen und die eigene Auswahl später jederzeit ändern.</p>
+            {polls.length === 0 ? <p>Noch keine Terminabstimmung angelegt.</p> : polls.map((poll) => {
+              const options = pollOptions.filter((option) => option.poll_id === poll.id)
+              const selectedIds = pollSelections[poll.id] || []
+              const totalVoters = new Set(pollVotes.filter((vote) => vote.poll_id === poll.id).map((vote) => vote.player_id)).size
+
+              return <div key={poll.id} style={{ marginTop: 14, padding: 16, border: '1px solid #36506d', borderRadius: 16, background: '#081728' }}>
+                <h3 style={{ marginTop: 0 }}>{poll.question}</h3>
+                {poll.description && <p>{poll.description}</p>}
+                <p>{poll.allow_multiple ? 'Mehrfachauswahl möglich' : 'Eine Auswahl möglich'} · {totalVoters} abgestimmt</p>
+
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {options.map((option) => {
+                    const optionVotes = pollVotes.filter((vote) => vote.option_id === option.id)
+                    const voters = allProfiles.filter((player) => optionVotes.some((vote) => vote.player_id === player.id))
+                    const selected = selectedIds.includes(option.id)
+
+                    return <div key={option.id} style={{ padding: 12, borderRadius: 12, background: '#102034', border: selected ? '1px solid #55e9b3' : '1px solid #263c54' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}>
+                        <input
+                          type={poll.allow_multiple ? 'checkbox' : 'radio'}
+                          name={`poll-${poll.id}`}
+                          checked={selected}
+                          disabled={!poll.is_open || busy}
+                          onChange={() => togglePollOption(poll, option.id)}
+                          style={{ width: 20, height: 20, margin: 0 }}
+                        />
+                        <strong style={{ flex: 1 }}>{option.option_text}</strong>
+                        <span>{optionVotes.length} Stimme{optionVotes.length === 1 ? '' : 'n'}</span>
+                      </label>
+                      {voters.length > 0 && <p style={{ margin: '8px 0 0', fontSize: 13 }}>{voters.map((player) => player.display_name).join(', ')}</p>}
+                    </div>
+                  })}
+                </div>
+
+                <button className="primary-button" style={{ marginTop: 14 }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
+                  Auswahl speichern
+                </button>
+                {!poll.is_open && <p>Diese Abstimmung ist geschlossen.</p>}
+                {profile?.is_admin && <button type="button" style={{ marginTop: 10 }} disabled={busy} onClick={() => deletePoll(poll)}>🗑️ Abstimmung löschen</button>}
+              </div>
+            })}
+          </section>
+
+          {profile?.is_admin && <section className="content-card">
+            <h2>⚙️ Neue Terminabstimmung</h2>
+            <form onSubmit={createPoll}>
+              <label>Frage
+                <input value={pollQuestion} onChange={(event) => setPollQuestion(event.target.value)} placeholder="z. B. Wann passt euch die Weihnachtsfeier?" required />
+              </label>
+              <label>Beschreibung / Hinweis
+                <textarea value={pollDescription} onChange={(event) => setPollDescription(event.target.value)} rows="3" placeholder="Optionaler Hinweis zur Abstimmung" />
+              </label>
+              <label>Optionen, jeweils eine pro Zeile
+                <textarea value={pollOptionLines} onChange={(event) => setPollOptionLines(event.target.value)} rows="6" placeholder={'Freitag, 20.11.2026\nSamstag, 21.11.2026\nFreitag, 27.11.2026'} required />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input type="checkbox" checked={pollAllowMultiple} onChange={(event) => setPollAllowMultiple(event.target.checked)} style={{ width: 20, height: 20, margin: 0 }} />
+                Mehrfachauswahl erlauben
+              </label>
+              <button className="primary-button" disabled={busy}>+ Terminabstimmung erstellen</button>
+            </form>
+          </section>}
+
+          {profile?.is_admin && <section className="content-card">
+            <h2>⚙️ Admin · Event anlegen</h2>
+
           {profile?.is_admin && <section className="content-card">
             <h2>⚙️ Admin · Event anlegen</h2>
             <form onSubmit={createEvent}>
@@ -1073,7 +1297,7 @@ export default function App() {
         <button className={tab === 'anmelden' ? 'active' : ''} onClick={openSignupTab}>⚽ <span>Anmelden</span></button>
         <button className={tab === 'runden' ? 'active' : ''} onClick={openRoundsTab}>🎲 <span>Spieltag auslosen</span></button>
         <button className={tab === 'ranking' ? 'active' : ''} onClick={() => { setTab('ranking'); loadRanking() }}>🏆 <span>Ranking</span></button>
-        <button className={tab === 'events' ? 'active' : ''} onClick={() => { setTab('events'); loadEvents() }}>🎉 <span>Events</span></button>
+        <button className={tab === 'events' ? 'active' : ''} onClick={() => { setTab('events'); loadEvents(); loadPolls() }}>🎉 <span>Events</span></button>
       </nav>
     </div>
   )
