@@ -1209,8 +1209,6 @@ export default function App() {
             ))}
           </section>
 
-          </section>
-
           <section className="content-card">
             <h2>📊 Terminabstimmungen</h2>
             <p>Termine auswählen und die eigene Auswahl später jederzeit ändern.</p>
