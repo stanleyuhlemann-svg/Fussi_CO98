@@ -1277,9 +1277,6 @@ export default function App() {
 
           {profile?.is_admin && <section className="content-card">
             <h2>⚙️ Admin · Event anlegen</h2>
-
-          {profile?.is_admin && <section className="content-card">
-            <h2>⚙️ Admin · Event anlegen</h2>
             <form onSubmit={createEvent}>
               <label>Event<input value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} placeholder="z. B. Weihnachtsfeier" required /></label>
               <label>Startdatum<input type="date" value={eventStartDate} onChange={(event) => setEventStartDate(event.target.value)} required /></label>
