@@ -478,7 +478,7 @@ export default function App() {
       setPollDescription('')
       setPollOptionLines('')
       setPollAllowMultiple(true)
-      setMessage('Terminabstimmung wurde erstellt.')
+      setMessage('Event-Abstimmung wurde erstellt.')
       await loadPolls()
     }
     setBusy(false)
@@ -492,7 +492,7 @@ export default function App() {
     const { error: deleteError } = await supabase.from('event_polls').delete().eq('id', poll.id)
     if (deleteError) setError(deleteError.message)
     else {
-      setMessage('Terminabstimmung wurde gelöscht.')
+      setMessage('Event-Abstimmung wurde gelöscht.')
       await loadPolls()
     }
     setBusy(false)
@@ -1174,19 +1174,19 @@ export default function App() {
           </section>
 
           {polls.length > 0 && <section className="content-card" style={{ gridColumn: '1 / -1' }}>
-            <h2>📊 Terminabstimmungen</h2>
-            <p>Termine auswählen und die eigene Auswahl später jederzeit ändern.</p>
+            <h2>📊 Event-Abstimmungen</h2>
+            <p>Optionen auswählen und die eigene Auswahl später jederzeit ändern.</p>
             {polls.map((poll) => {
               const options = pollOptions.filter((option) => Number(option.poll_id) === Number(poll.id))
               const selectedIds = pollSelections[poll.id] || []
               const totalVoters = new Set(pollVotes.filter((vote) => Number(vote.poll_id) === Number(poll.id)).map((vote) => vote.player_id)).size
 
-              return <div key={poll.id} style={{ marginTop: 12, padding: 14, border: '1px solid #36506d', borderRadius: 16, background: '#081728' }}>
-                <h3 style={{ marginTop: 0 }}>{poll.question}</h3>
-                {poll.description && <p>{poll.description}</p>}
-                <p>{poll.allow_multiple ? 'Mehrfachauswahl möglich' : 'Eine Auswahl möglich'} · {totalVoters} abgestimmt</p>
+              return <div key={poll.id} style={{ marginTop: 10, padding: 12, border: '1px solid #36506d', borderRadius: 14, background: '#081728' }}>
+                <h3 style={{ margin: '0 0 4px', fontSize: 17 }}>{poll.question}</h3>
+                {poll.description && <p style={{ margin: '0 0 6px', fontSize: 13 }}>{poll.description}</p>}
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: '#9bc5e8' }}>{poll.allow_multiple ? 'Mehrfachauswahl möglich' : 'Eine Auswahl möglich'} · {totalVoters} abgestimmt</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))', gap: 7 }}>
                   {options.map((option) => {
                     const optionVotes = pollVotes.filter((vote) => Number(vote.option_id) === Number(option.id))
                     const voters = allProfiles.filter((player) => optionVotes.some((vote) => vote.player_id === player.id))
@@ -1196,9 +1196,9 @@ export default function App() {
                       key={option.id}
                       onClick={() => !busy && poll.is_open && togglePollOption(poll, Number(option.id))}
                       style={{
-                        minHeight: 82,
-                        padding: 12,
-                        borderRadius: 12,
+                        minHeight: 58,
+                        padding: '8px 9px',
+                        borderRadius: 10,
                         background: selected ? 'rgba(85, 233, 179, 0.12)' : '#102034',
                         border: selected ? '2px solid #55e9b3' : '1px solid #263c54',
                         cursor: poll.is_open && !busy ? 'pointer' : 'default',
@@ -1207,49 +1207,51 @@ export default function App() {
                         justifyContent: 'center',
                       }}
                     >
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 9, margin: 0, cursor: 'inherit' }} onClick={(event) => event.stopPropagation()}>
+                      <label style={{ display: 'grid', gridTemplateColumns: '18px 1fr auto', alignItems: 'center', gap: 7, margin: 0, cursor: 'inherit' }} onClick={(event) => event.stopPropagation()}>
                         <input
                           type={poll.allow_multiple ? 'checkbox' : 'radio'}
                           name={`poll-${poll.id}`}
                           checked={selected}
                           disabled={!poll.is_open || busy}
                           onChange={() => togglePollOption(poll, Number(option.id))}
-                          style={{ width: 18, height: 18, margin: 0, flex: '0 0 auto' }}
+                          style={{ width: 16, height: 16, margin: 0 }}
                         />
-                        <strong style={{ flex: 1, fontSize: 15 }}>{option.option_text}</strong>
-                        <span style={{ fontWeight: 900, color: optionVotes.length ? '#55e9b3' : '#9bc5e8', whiteSpace: 'nowrap' }}>{optionVotes.length}</span>
+                        <strong style={{ minWidth: 0, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis' }}>{option.option_text}</strong>
+                        <span style={{ minWidth: 22, height: 22, display: 'grid', placeItems: 'center', borderRadius: 999, fontSize: 12, fontWeight: 900, color: optionVotes.length ? '#052017' : '#9bc5e8', background: optionVotes.length ? '#55e9b3' : '#203754' }}>{optionVotes.length}</span>
                       </label>
-                      {voters.length > 0 && <p style={{ margin: '8px 0 0 27px', fontSize: 12, color: '#9bc5e8' }}>{voters.map((player) => player.display_name).join(', ')}</p>}
+                      {voters.length > 0 && <p style={{ margin: '5px 0 0 25px', fontSize: 11, lineHeight: 1.25, color: '#9bc5e8' }}>{voters.map((player) => player.display_name).join(', ')}</p>}
                     </div>
                   })}
                 </div>
 
-                <button className="primary-button" style={{ marginTop: 12, width: 'auto', minWidth: 160 }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
-                  Auswahl speichern
-                </button>
+                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  <button className="primary-button" style={{ width: 'auto', minWidth: 140, minHeight: 38, padding: '8px 14px' }} disabled={busy || !poll.is_open} onClick={() => savePollVote(poll)}>
+                    Auswahl speichern
+                  </button>
+                  {profile?.is_admin && <button type="button" style={{ width: 'auto', minHeight: 38, padding: '8px 12px' }} disabled={busy} onClick={() => deletePoll(poll)}>🗑️ Löschen</button>}
+                </div>
                 {!poll.is_open && <p>Diese Abstimmung ist geschlossen.</p>}
-                {profile?.is_admin && <button type="button" style={{ marginTop: 10 }} disabled={busy} onClick={() => deletePoll(poll)}>🗑️ Abstimmung löschen</button>}
               </div>
             })}
           </section>}
 
           {profile?.is_admin && <section className="content-card" style={{ gridColumn: '1 / -1' }}>
-            <h2>⚙️ Neue Terminabstimmung</h2>
+            <h2>⚙️ Neue Event-Abstimmung</h2>
             <form onSubmit={createPoll}>
               <label>Frage
-                <input value={pollQuestion} onChange={(event) => setPollQuestion(event.target.value)} placeholder="z. B. Wann passt euch die Weihnachtsfeier?" required />
+                <input value={pollQuestion} onChange={(event) => setPollQuestion(event.target.value)} placeholder="z. B. Was wollt ihr abstimmen?" required />
               </label>
               <label>Beschreibung / Hinweis
                 <textarea value={pollDescription} onChange={(event) => setPollDescription(event.target.value)} rows="3" placeholder="Optionaler Hinweis zur Abstimmung" />
               </label>
               <label>Optionen, jeweils eine pro Zeile
-                <textarea value={pollOptionLines} onChange={(event) => setPollOptionLines(event.target.value)} rows="6" placeholder={'Freitag, 20.11.2026\nSamstag, 21.11.2026\nFreitag, 27.11.2026'} required />
+                <textarea value={pollOptionLines} onChange={(event) => setPollOptionLines(event.target.value)} rows="6" placeholder={'Fahrrad\nZu Fuß\nBahn'} required />
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <input type="checkbox" checked={pollAllowMultiple} onChange={(event) => setPollAllowMultiple(event.target.checked)} style={{ width: 20, height: 20, margin: 0 }} />
                 Mehrfachauswahl erlauben
               </label>
-              <button className="primary-button" disabled={busy}>+ Terminabstimmung erstellen</button>
+              <button className="primary-button" disabled={busy}>+ Event-Abstimmung erstellen</button>
             </form>
           </section>}
 
